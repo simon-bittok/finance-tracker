@@ -1,0 +1,56 @@
+-- CreateTable
+CREATE TABLE "UserSettings" (
+    "userId" TEXT NOT NULL PRIMARY KEY,
+    "currency" TEXT NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "Category" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "userId" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "icon" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'INCOME'
+);
+
+-- CreateTable
+CREATE TABLE "Transaction" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "amount" REAL NOT NULL,
+    "description" TEXT NOT NULL,
+    "date" DATETIME NOT NULL,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL DEFAULT 'INCOME',
+    "categoryId" TEXT NOT NULL,
+    "categoryIcon" TEXT NOT NULL,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT "Transaction_categoryId_fkey" FOREIGN KEY ("categoryId") REFERENCES "Category" ("id") ON DELETE RESTRICT ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "MonthHistory" (
+    "userId" TEXT NOT NULL,
+    "day" INTEGER NOT NULL,
+    "month" INTEGER NOT NULL,
+    "year" INTEGER NOT NULL,
+    "income" REAL NOT NULL,
+    "expense" REAL NOT NULL,
+
+    PRIMARY KEY ("day", "month", "year", "userId")
+);
+
+-- CreateTable
+CREATE TABLE "YearHistory" (
+    "userId" TEXT NOT NULL,
+    "month" INTEGER NOT NULL,
+    "year" INTEGER NOT NULL,
+    "income" REAL NOT NULL,
+    "expense" REAL NOT NULL,
+
+    PRIMARY KEY ("month", "year", "userId")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Category_name_userId_type_key" ON "Category"("name", "userId", "type");
