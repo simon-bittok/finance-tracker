@@ -25,17 +25,20 @@
 			"@routes/*": [
 				"src/routes/*"
 			],
-			"@repository": [
+			"@repository/*": [
 				"src/repository/*"
 			],
-			"@middlewares": [
+			"@middlewares/*": [
 				"src/middlewares/*"
 			],
-			"@types": [
+			"@types/*": [
 				"src/types/*"
 			],
-			"@tests": [
+			"@tests/*": [
 				"tests/*"
+			],
+			"@prisma/*": [
+				"prisma/*"
 			]
 		}
 	},

@@ -1,0 +1,28 @@
+import z from "zod";
+
+export const createTransactionSchema = z.object({
+	amount: z.coerce
+		.number()
+		.positive("Amount must be a positive number")
+		.multipleOf(0.01, "Amount must be a multiple of 0.01"),
+	description: z.string().optional(),
+	date: z.coerce.date(),
+	categoryName: z.string(),
+	type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]),
+});
+
+export type CreateTransactionType = z.infer<typeof createTransactionSchema>;
+
+export const updateTransactionSchema = z.object({
+	amount: z.coerce
+		.number()
+		.positive("Amount must be a positive number")
+		.multipleOf(0.01, "Amount must be a multiple of 0.01")
+		.optional(),
+	description: z.string().optional(),
+	date: z.coerce.date(),
+	categoryName: z.string().optional(),
+	type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]),
+});
+
+export type UpdateTransactionType = z.infer<typeof updateTransactionSchema>;

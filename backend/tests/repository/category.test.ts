@@ -4,73 +4,57 @@ import {
 	getCategoryById,
 	deleteCategoryById,
 	updateCategoryById,
+	type GetCategory,
+	type DeleteCategory,
+	type UpdateCategory,
+	type CreateCategory,
+	type GetCategories,
 } from "@/repository/category.js";
 import { describe, expect, it } from "vitest";
 
-const userId = "SvglSWBlcXqS08v6VdPcUIj6qAOKTql5";
+const userId = "ITU2VHecgzOmw7fftiXq3oH8RzK9zRXg";
 
 describe("Category Repository", async () => {
 	it("Should create a category", async () => {
-		const category = await createCategory(
+		const category: CreateCategory = await createCategory(
 			{
-				name: "Food & Dining",
-				icon: "bugger",
+				name: "Entertainment",
+				icon: "discoball",
 				type: "EXPENSE",
 			},
 			userId,
 		);
 
 		expect(category).toHaveProperty("id");
-		expect(category.name).toBe("Food & Dining");
+		expect(category.name).toBe("Entertainment");
 	});
 
 	it("Should fetch all categories for a user", async () => {
-		await createCategory(
-			{ name: "Salary", icon: "bag-money", type: "INCOME" },
-			userId,
-		);
-		const categories = await getAllCategories(userId);
+		const categories: GetCategories = await getAllCategories(userId);
 
-		expect(categories.length).toBe(1);
+		expect(categories.length).toBe(4);
 	});
 
 	it("Should get a category by ID", async () => {
-		const category = await createCategory(
-			{ name: "Bills & Utilities", icon: "credit-card", type: "EXPENSE" },
-			userId,
-		);
-		const fetched = await getCategoryById(category.id, userId);
+		const id = "cmhorgpet000034ucpgfadrkj";
+		const fetched: GetCategory = await getCategoryById(id, userId);
 
-		expect(fetched?.name).toBe("Bills & Utilities");
+		expect(fetched?.name).toBe("Food & Dining");
 	});
 
 	it("Should delete a category by ID", async () => {
-		const category = await createCategory(
-			{
-				name: "Groceries & Toiletries",
-				icon: "shopping-cart",
-				type: "EXPENSE",
-			},
-			userId,
-		);
-		const deleted = await deleteCategoryById(category.id, userId);
+		const id = "cmhorgpet000134uc0y6x2phj";
+		const deleted: DeleteCategory = await deleteCategoryById(id, userId);
 		expect(deleted).toHaveProperty("createdAt");
 
-		const exists = await getCategoryById(category.id, userId);
+		const exists: GetCategory = await getCategoryById(id, userId);
 		expect(exists).toBeNull();
 	});
 
 	it("Should update category by ID", async () => {
-		const category = await createCategory(
-			{
-				name: "Freelance",
-				icon: "airplane",
-				type: "INCOME",
-			},
-			userId,
-		);
+		const id = "cmhorgpet000334ucyllo6vhh";
 
-		const updated = await updateCategoryById(category.id, userId, {
+		const updated: UpdateCategory = await updateCategoryById(id, userId, {
 			icon: "remote",
 		});
 
