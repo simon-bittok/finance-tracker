@@ -13,17 +13,21 @@ export const createTransactionSchema = z.object({
 
 export type CreateTransactionType = z.infer<typeof createTransactionSchema>;
 
-export const updateTransactionSchema = z.object({
-	amount: z.coerce
-		.number()
-		.positive("Amount must be a positive number")
-		.multipleOf(0.01, "Amount must be a multiple of 0.01")
-		.optional(),
-	description: z.string().optional(),
-	date: z.coerce.date(),
-	categoryName: z.string().optional(),
-	type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]),
-});
+export const updateTransactionSchema = z
+	.object({
+		amount: z.coerce
+			.number()
+			.positive("Amount must be a positive number")
+			.multipleOf(0.01, "Amount must be a multiple of 0.01")
+			.optional(),
+		description: z.string().optional(),
+		date: z.coerce.date().optional(),
+		categoryName: z.string().optional(),
+		type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]).optional(),
+	})
+	.refine((data) => Object.keys(data).length > 0, {
+		message: "At least one field must be provided for update",
+	});
 
 export type UpdateTransactionType = z.infer<typeof updateTransactionSchema>;
 

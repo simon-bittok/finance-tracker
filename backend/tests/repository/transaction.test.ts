@@ -1,8 +1,13 @@
 import {
 	createTransaction,
+	deleteTransactionById,
 	getAllTransactions,
+	getTransactionById,
+	updateTransactionById,
 	type CreateTransaction,
+	type DeleteTransaction,
 	type GetAllTransactions,
+	type GetTransactionById,
 } from "@/repository/transactions.js";
 import { expect, it, describe } from "vitest";
 import { testDb } from "@tests/setup.js";
@@ -67,5 +72,67 @@ describe("Transaction repository", async () => {
 		);
 
 		expect(transactions.length).toBe(1);
+	});
+
+	it("Should retreive a transactions by its specified id", async () => {
+		const id = "cmhpyr3lo0003341rp9nvtr9y";
+		const transaction: GetTransactionById = await getTransactionById(
+			id,
+			userId,
+			testDb.prisma,
+		);
+
+		expect(transaction?.type).toBe("INCOME");
+		expect(transaction?.amount).toBe(65000.0);
+	});
+
+	it("Should delete a transactions by its specified id", async () => {
+		const id = "cmhpyr3lo0003341rp9nvtr9y";
+		const transaction: DeleteTransaction = await deleteTransactionById(
+			id,
+			userId,
+			testDb.prisma,
+		);
+
+		expect(transaction?.type).toBe("INCOME");
+
+		const exists: GetTransactionById = await getTransactionById(
+			id,
+			userId,
+			testDb.prisma,
+		);
+
+		expect(exists).toBeNull();
+	});
+
+	it("Should update a transactions by its specified id", async () => {
+		const id = "cmhpyr3lo0003341rp9nvtr9y";
+		const transaction = await updateTransactionById(
+			id,
+			userId,
+			{
+				amount: 68500,
+			},
+			testDb.prisma,
+		);
+
+		expect(transaction?.amount).toBe(68500.0);
+	});
+
+	it("Should update a transactions' category by its specified id", async () => {
+		const id = "cmhpyr3lo0003341rp9nvtr9y";
+		const categoryId = "cmhorgpet000334ucyllo6vhh";
+		const transaction = await updateTransactionById(
+			id,
+			userId,
+			{
+				amount: 68500,
+				categoryName: "Freelancing",
+			},
+			testDb.prisma,
+		);
+
+		expect(transaction?.amount).toBe(68500.0);
+		expect(transaction?.categoryId).toBe(categoryId);
 	});
 });
