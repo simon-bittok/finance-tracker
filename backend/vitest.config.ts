@@ -7,6 +7,10 @@ export default defineConfig({
 		globals: true,
 		environment: "node",
 		include: ["tests/**/*.test.ts"],
-		setupFiles: ["./tests/index.ts"],
+		setupFiles: ["./tests/setup.ts"],
+		sequence: {
+			concurrent: false, // was causing race conditions
+		},
+		fileParallelism: false,
 	},
 });

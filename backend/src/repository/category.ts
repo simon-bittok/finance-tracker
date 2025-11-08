@@ -1,12 +1,17 @@
+import type { PrismaClient } from "@/generated/prisma/client.js";
 import type { TransactionType } from "@/generated/prisma/enums.js";
 import {
 	type CreateCategoryType,
 	type UpdateCategoryType,
 } from "@/types/category.js";
-import { prisma } from "@/utils/prisma.js";
+import { prisma as defaultPrisma } from "@utils/prisma.js";
 import { HTTPException } from "hono/http-exception";
 
-export async function createCategory(data: CreateCategoryType, userId: string) {
+export async function createCategory(
+	prisma: PrismaClient = defaultPrisma,
+	data: CreateCategoryType,
+	userId: string,
+) {
 	const { name, icon, type } = data;
 
 	return await prisma.category.create({
@@ -19,25 +24,43 @@ export async function createCategory(data: CreateCategoryType, userId: string) {
 	});
 }
 
-export async function getAllCategories(userId: string, type?: TransactionType) {
+export async function getAllCategories(
+	prisma: PrismaClient = defaultPrisma,
+	userId: string,
+	type?: TransactionType,
+) {
 	return await prisma.category.findMany({
 		where: {
 			userId,
 			...(type && { type }),
 		},
+		include: {
+			transactions: true,
+		},
 	});
 }
 
-export async function getCategoryById(id: string, userId: string) {
+export async function getCategoryById(
+	prisma: PrismaClient = defaultPrisma,
+	id: string,
+	userId: string,
+) {
 	return await prisma.category.findUnique({
 		where: {
 			userId,
 			id,
 		},
+		include: {
+			transactions: true,
+		},
 	});
 }
 
-export async function deleteCategoryById(id: string, userId: string) {
+export async function deleteCategoryById(
+	prisma: PrismaClient = defaultPrisma,
+	id: string,
+	userId: string,
+) {
 	return await prisma.category.delete({
 		where: {
 			id,
@@ -47,11 +70,12 @@ export async function deleteCategoryById(id: string, userId: string) {
 }
 
 export async function updateCategoryById(
+	prisma: PrismaClient = defaultPrisma,
 	id: string,
 	userId: string,
 	params: UpdateCategoryType,
 ) {
-	const category = await getCategoryById(id, userId);
+	const category = await getCategoryById(prisma, id, userId);
 
 	if (!category) {
 		throw new HTTPException(404, {
@@ -74,6 +98,6 @@ export async function updateCategoryById(
 
 export type GetCategories = Awaited<ReturnType<typeof getAllCategories>>;
 export type GetCategory = Awaited<ReturnType<typeof getCategoryById>>;
-export type DeleteCategory = Awaited<ReturnType<typeof getCategoryById>>;
+export type DeleteCategory = Awaited<ReturnType<typeof deleteCategoryById>>;
 export type CreateCategory = Awaited<ReturnType<typeof createCategory>>;
 export type UpdateCategory = Awaited<ReturnType<typeof updateCategoryById>>;

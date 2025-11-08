@@ -26,3 +26,9 @@ export const updateTransactionSchema = z.object({
 });
 
 export type UpdateTransactionType = z.infer<typeof updateTransactionSchema>;
+
+export interface TransactionQuery {
+	from: Date;
+	to: Date;
+	type?: "INCOME" | "EXPENSE";
+}
