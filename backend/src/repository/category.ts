@@ -37,6 +37,9 @@ export async function getAllCategories(
 		include: {
 			transactions: true,
 		},
+		orderBy: {
+			createdAt: "desc",
+		},
 	});
 }
 

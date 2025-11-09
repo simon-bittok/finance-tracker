@@ -1,7 +1,8 @@
 import type { AuthType } from "@/utils/auth.js";
 import { Hono } from "hono";
-import authRouter from "./auth.js";
-import userRouter from "./users.js";
+import authRouter from "./auth.route.js";
+import userRouter from "./users.route.js";
+import categoryRouter from "./category.route.js";
 import { cors } from "hono/cors";
 
 const router = new Hono<{ Bindings: AuthType }>({ strict: false });
@@ -18,7 +19,7 @@ router.use(
 	}),
 );
 
-const routers = [authRouter, userRouter];
+const routers = [authRouter, userRouter, categoryRouter];
 
 routers.forEach((route) => {
 	router.basePath("/api").route(route.path, route.handler);
