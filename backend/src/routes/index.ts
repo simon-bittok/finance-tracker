@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import authRouter from "./auth.route.js";
 import userRouter from "./users.route.js";
 import categoryRouter from "./category.route.js";
+import userSettingsRouter from "./user-settings.route.js";
 import { cors } from "hono/cors";
 
 const router = new Hono<{ Bindings: AuthType }>({ strict: false });
@@ -19,7 +20,7 @@ router.use(
 	}),
 );
 
-const routers = [authRouter, userRouter, categoryRouter];
+const routers = [authRouter, userRouter, categoryRouter, userSettingsRouter];
 
 routers.forEach((route) => {
 	router.basePath("/api").route(route.path, route.handler);
