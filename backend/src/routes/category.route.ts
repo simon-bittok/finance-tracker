@@ -1,14 +1,16 @@
-import { requireAuth } from "@/middlewares/auth.js";
-import type { AuthType } from "@/utils/auth.js";
-import * as categoryRepository from "@repository/category.js";
-import { prisma } from "@/utils/prisma.js";
-import { Hono } from "hono";
 import type { TransactionType } from "@/generated/prisma/enums.js";
-import { zValidator } from "@hono/zod-validator";
+import { requireAuth } from "@/middlewares/auth.js";
 import {
-	createCategorySchema,
-	updateCategorySchema,
+    createCategorySchema,
+    updateCategorySchema,
+    type CreateCategoryInputs,
+    type UpdateCategoryInputs,
 } from "@/types/category.js";
+import type { AuthType } from "@/utils/auth.js";
+import { prisma } from "@/utils/prisma.js";
+import { zValidator } from "@hono/zod-validator";
+import * as categoryRepository from "@/repository/category.repository.js";
+import { Hono } from "hono";
 
 const app = new Hono<{ Bindings: AuthType }>({
 	strict: false,
@@ -22,9 +24,9 @@ app.get("/", requireAuth, async (c) => {
 			: undefined;
 
 	const categories = await categoryRepository.getAllCategories(
-		prisma,
 		user.id,
 		type,
+		prisma,
 	);
 
 	return c.json(categories);
@@ -36,12 +38,12 @@ app.post(
 	requireAuth,
 	async (c) => {
 		const user = c.get("user");
-		const validated = c.req.valid("json");
+		const validated : CreateCategoryInputs = c.req.valid("json");
 
-		const category = await categoryRepository.createCategory(
-			prisma,
+		const category : categoryRepository.CreateCategory = await categoryRepository.createCategory(
+		user.id,
 			validated,
-			user.id,
+			prisma,
 		);
 
 		return c.json(category, 201);
@@ -52,10 +54,10 @@ app.get("/:id", requireAuth, async (c) => {
 	const id = c.req.param("id");
 	const user = c.get("user");
 
-	const category = await categoryRepository.getCategoryById(
-		prisma,
+	const category : categoryRepository.GetCategory = await categoryRepository.getCategoryById(
 		id,
 		user.id,
+		prisma,
 	);
 
 	if (!category) {
@@ -71,14 +73,14 @@ app.patch(
 	requireAuth,
 	async (c) => {
 		const id = c.req.param("id");
-		const validated = c.req.valid("json");
+		const validated: UpdateCategoryInputs = c.req.valid("json");
 		const user = c.get("user");
 
-		const category = await categoryRepository.updateCategoryById(
-			prisma,
+		const category : categoryRepository.UpdateCategory = await categoryRepository.updateCategoryById(
 			id,
 			user.id,
 			validated,
+			prisma,
 		);
 
 		return c.json(category);
@@ -90,9 +92,9 @@ app.delete("/:id", requireAuth, async (c) => {
 	const user = c.get("user");
 
 	const category = await categoryRepository.deleteCategoryById(
-		prisma,
 		id,
 		user.id,
+		prisma,
 	);
 
 	return c.json(category, 200);

@@ -7,11 +7,10 @@ export const createTransactionSchema = z.object({
 		.multipleOf(0.01, "Amount must be a multiple of 0.01"),
 	description: z.string().optional(),
 	date: z.coerce.date(),
-	categoryName: z.string(),
-	type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]),
+	categoryId: z.string(),
 });
 
-export type CreateTransactionType = z.infer<typeof createTransactionSchema>;
+export type CreateTransactionInputs = z.infer<typeof createTransactionSchema>;
 
 export const updateTransactionSchema = z
 	.object({
@@ -22,14 +21,13 @@ export const updateTransactionSchema = z
 			.optional(),
 		description: z.string().optional(),
 		date: z.coerce.date().optional(),
-		categoryName: z.string().optional(),
-		type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]).optional(),
+		categoryId: z.string().optional(),
 	})
 	.refine((data) => Object.keys(data).length > 0, {
 		message: "At least one field must be provided for update",
 	});
 
-export type UpdateTransactionType = z.infer<typeof updateTransactionSchema>;
+export type UpdateTransactionInputs = z.infer<typeof updateTransactionSchema>;
 
 export interface TransactionQuery {
 	from: Date;

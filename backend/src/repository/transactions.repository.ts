@@ -1,32 +1,29 @@
+import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
-	PrismaClient,
-	TransactionType,
-} from "@/generated/prisma/client.js";
-import type {
-	CreateTransactionType,
+	CreateTransactionInputs,
 	TransactionQuery,
-	UpdateTransactionType,
+	UpdateTransactionInputs,
 } from "@/types/transactions.js";
 import { prisma as defaultPrisma } from "@utils/prisma.js";
 import { HTTPException } from "hono/http-exception";
 
 export async function createTransaction(
 	userId: string,
-	params: CreateTransactionType,
+	params: CreateTransactionInputs,
 	prisma: PrismaClient = defaultPrisma,
 ) {
-	const { amount, categoryName, type, description, date } = params;
+	const { amount, categoryId, description, date } = params;
 
 	const category = await prisma.category.findFirst({
 		where: {
 			userId,
-			name: categoryName,
+			id: categoryId,
 		},
 	});
 
 	if (!category) {
 		throw new HTTPException(404, {
-			message: `Category ${categoryName} not found`,
+			message: "Category not found",
 		});
 	}
 
@@ -35,10 +32,8 @@ export async function createTransaction(
 			userId,
 			amount,
 			categoryId: category.id,
-			categoryIcon: category.icon,
-			description: description ?? "",
-			date,
-			type,
+			description: description || "",
+			date: date,
 		},
 	});
 }
@@ -97,7 +92,7 @@ export async function deleteTransactionById(
 export async function updateTransactionById(
 	id: string,
 	userId: string,
-	params: UpdateTransactionType,
+	params: UpdateTransactionInputs,
 	prisma: PrismaClient = defaultPrisma,
 ) {
 	const existingTransaction = await getTransactionById(id, userId, prisma);
@@ -109,13 +104,11 @@ export async function updateTransactionById(
 	}
 
 	let categoryId: string | null = null;
-	let categoryIcon: string | null = null;
-	let transactionType: TransactionType | null = null;
 
-	if (params.categoryName) {
+	if (params.categoryId) {
 		const category = await prisma.category.findFirst({
 			where: {
-				name: params.categoryName,
+				id: params.categoryId,
 				userId,
 			},
 		});
@@ -127,8 +120,6 @@ export async function updateTransactionById(
 		}
 
 		categoryId = category.id;
-		categoryIcon = category.icon;
-		transactionType = category.type;
 	}
 
 	return await prisma.transaction.update({
@@ -138,10 +129,8 @@ export async function updateTransactionById(
 		},
 		data: {
 			amount: params.amount ?? existingTransaction.amount,
-			categoryIcon: categoryIcon ?? existingTransaction.categoryIcon,
 			categoryId: categoryId ?? existingTransaction.categoryId,
 			date: params.date ?? existingTransaction.date,
-			type: transactionType ?? existingTransaction.type,
 			description: params.description ?? existingTransaction.description,
 		},
 	});

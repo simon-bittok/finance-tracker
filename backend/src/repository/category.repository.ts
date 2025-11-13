@@ -1,18 +1,30 @@
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type { TransactionType } from "@/generated/prisma/enums.js";
-import {
-	type CreateCategoryType,
-	type UpdateCategoryType,
+import type {
+    CreateCategoryInputs,
+    UpdateCategoryInputs,
 } from "@/types/category.js";
 import { prisma as defaultPrisma } from "@utils/prisma.js";
 import { HTTPException } from "hono/http-exception";
 
 export async function createCategory(
-	prisma: PrismaClient = defaultPrisma,
-	data: CreateCategoryType,
 	userId: string,
+	data: CreateCategoryInputs,
+	prisma: PrismaClient = defaultPrisma,
 ) {
 	const { name, icon, type } = data;
+
+	const existing = await prisma.category.findFirst({
+		where: {
+			userId,
+			name,
+			type,
+		},
+	});
+
+	if (existing) {
+		throw new HTTPException(409, { message: "Category already exists" });
+	}
 
 	return await prisma.category.create({
 		data: {
@@ -25,9 +37,9 @@ export async function createCategory(
 }
 
 export async function getAllCategories(
-	prisma: PrismaClient = defaultPrisma,
 	userId: string,
 	type?: TransactionType,
+	prisma: PrismaClient = defaultPrisma,
 ) {
 	return await prisma.category.findMany({
 		where: {
@@ -44,9 +56,9 @@ export async function getAllCategories(
 }
 
 export async function getCategoryById(
-	prisma: PrismaClient = defaultPrisma,
 	id: string,
 	userId: string,
+	prisma: PrismaClient = defaultPrisma,
 ) {
 	return await prisma.category.findUnique({
 		where: {
@@ -60,9 +72,9 @@ export async function getCategoryById(
 }
 
 export async function deleteCategoryById(
-	prisma: PrismaClient = defaultPrisma,
 	id: string,
 	userId: string,
+	prisma: PrismaClient = defaultPrisma,
 ) {
 	return await prisma.category.delete({
 		where: {
@@ -73,12 +85,12 @@ export async function deleteCategoryById(
 }
 
 export async function updateCategoryById(
-	prisma: PrismaClient = defaultPrisma,
 	id: string,
 	userId: string,
-	params: UpdateCategoryType,
+	params: UpdateCategoryInputs,
+	prisma: PrismaClient = defaultPrisma,
 ) {
-	const category = await getCategoryById(prisma, id, userId);
+	const category = await getCategoryById(id, userId, prisma);
 
 	if (!category) {
 		throw new HTTPException(404, {

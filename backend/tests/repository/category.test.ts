@@ -9,7 +9,7 @@ import {
 	type UpdateCategory,
 	type CreateCategory,
 	type GetCategories,
-} from "@/repository/category.js";
+} from "@/repository/category.repository.js";
 import { describe, expect, it } from "vitest";
 import { testDb } from "@tests/setup.js";
 
@@ -18,13 +18,13 @@ const userId = "ITU2VHecgzOmw7fftiXq3oH8RzK9zRXg";
 describe("Category Repository", async () => {
 	it("Should create a category", async () => {
 		const category: CreateCategory = await createCategory(
-			testDb.prisma,
+			userId,
 			{
 				name: "Entertainment",
 				icon: "discoball",
 				type: "EXPENSE",
 			},
-			userId,
+			testDb.prisma,
 		);
 
 		expect(category).toHaveProperty("id");
@@ -33,8 +33,9 @@ describe("Category Repository", async () => {
 
 	it("Should fetch all categories for a user", async () => {
 		const categories: GetCategories = await getAllCategories(
-			testDb.prisma,
 			userId,
+			undefined,
+			testDb.prisma,
 		);
 
 		expect(categories.length).toBe(4);
@@ -43,9 +44,9 @@ describe("Category Repository", async () => {
 	it("Should get a category by ID", async () => {
 		const id = "cmhorgpet000034ucpgfadrkj";
 		const fetched: GetCategory = await getCategoryById(
-			testDb.prisma,
 			id,
 			userId,
+			testDb.prisma,
 		);
 
 		expect(fetched?.name).toBe("Food & Dining");
@@ -54,16 +55,16 @@ describe("Category Repository", async () => {
 	it("Should delete a category by ID", async () => {
 		const id = "cmhorgpet000134uc0y6x2phj";
 		const deleted: DeleteCategory = await deleteCategoryById(
-			testDb.prisma,
 			id,
 			userId,
+			testDb.prisma,
 		);
 		expect(deleted).toHaveProperty("createdAt");
 
 		const exists: GetCategory = await getCategoryById(
-			testDb.prisma,
 			id,
 			userId,
+			testDb.prisma,
 		);
 		expect(exists).toBeNull();
 	});
@@ -72,12 +73,12 @@ describe("Category Repository", async () => {
 		const id = "cmhorgpet000334ucyllo6vhh";
 
 		const updated: UpdateCategory = await updateCategoryById(
-			testDb.prisma,
 			id,
 			userId,
 			{
 				icon: "remote",
 			},
+			testDb.prisma,
 		);
 
 		expect(updated.icon).toBe("remote");

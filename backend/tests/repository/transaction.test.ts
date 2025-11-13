@@ -5,15 +5,14 @@ import {
 	getTransactionById,
 	updateTransactionById,
 	type CreateTransaction,
-	type DeleteTransaction,
 	type GetAllTransactions,
 	type GetTransactionById,
-} from "@/repository/transactions.js";
-import { expect, it, describe } from "vitest";
+} from "@/repository/transactions.repository.js";
 import { testDb } from "@tests/setup.js";
+import { describe, expect, it } from "vitest";
 
 const userId = "ITU2VHecgzOmw7fftiXq3oH8RzK9zRXg";
-// const categoryId = "cmhorgpet000334ucyllo6vhh";
+const categoryId = "cmhorgpet000334ucyllo6vhh";
 
 describe("Transaction repository", async () => {
 	it("Should create a transaction", async () => {
@@ -23,14 +22,14 @@ describe("Transaction repository", async () => {
 				date: new Date("2025-09-10"),
 				amount: 205.65,
 				description: "Created a website from a client on upwork",
-				categoryName: "Freelancing",
-				type: "INCOME",
+				categoryId,
 			},
 			testDb.prisma,
 		);
 
+		expect(transaction).toBeDefined();
+
 		expect(transaction).toHaveProperty("updatedAt");
-		expect(transaction.type).toBe("INCOME");
 	});
 
 	it("Should retreive all transactions for specified period", async () => {
@@ -82,19 +81,12 @@ describe("Transaction repository", async () => {
 			testDb.prisma,
 		);
 
-		expect(transaction?.type).toBe("INCOME");
-		expect(transaction?.amount).toBe(65000.0);
+		expect(transaction?.amount.toNumber()).toBe(65000.0);
 	});
 
 	it("Should delete a transactions by its specified id", async () => {
 		const id = "cmhpyr3lo0003341rp9nvtr9y";
-		const transaction: DeleteTransaction = await deleteTransactionById(
-			id,
-			userId,
-			testDb.prisma,
-		);
-
-		expect(transaction?.type).toBe("INCOME");
+		await deleteTransactionById(id, userId, testDb.prisma);
 
 		const exists: GetTransactionById = await getTransactionById(
 			id,
@@ -116,7 +108,7 @@ describe("Transaction repository", async () => {
 			testDb.prisma,
 		);
 
-		expect(transaction?.amount).toBe(68500.0);
+		expect(transaction?.amount.toNumber()).toBe(68500.0);
 	});
 
 	it("Should update a transactions' category by its specified id", async () => {
@@ -127,12 +119,12 @@ describe("Transaction repository", async () => {
 			userId,
 			{
 				amount: 68500,
-				categoryName: "Freelancing",
+				categoryId,
 			},
 			testDb.prisma,
 		);
 
-		expect(transaction?.amount).toBe(68500.0);
+		expect(transaction?.amount.toNumber()).toBe(68500.0);
 		expect(transaction?.categoryId).toBe(categoryId);
 	});
 });

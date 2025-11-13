@@ -1,4 +1,3 @@
-import { TransactionType } from "@/generated/prisma/enums.js";
 import z from "zod";
 
 export const createCategorySchema = z.object({
@@ -7,10 +6,10 @@ export const createCategorySchema = z.object({
 		.min(3, "Category name requires 3 characters")
 		.max(32, "Category name must be under 32 characters."),
 	icon: z.string().max(50),
-	type: z.enum([TransactionType.INCOME, TransactionType.EXPENSE]),
+	type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]),
 });
 
-export type CreateCategoryType = z.infer<typeof createCategorySchema>;
+export type CreateCategoryInputs = z.infer<typeof createCategorySchema>;
 
 export const updateCategorySchema = z.object({
 	name: z
@@ -19,7 +18,7 @@ export const updateCategorySchema = z.object({
 		.max(32, "Category name must be under 32 characters.")
 		.optional(),
 	icon: z.string().max(50).optional(),
-	type: z.enum([TransactionType.INCOME, TransactionType.EXPENSE]).optional(),
+	type: z.union([z.literal("INCOME"), z.literal("EXPENSE")]).optional(),
 });
 
-export type UpdateCategoryType = z.infer<typeof updateCategorySchema>;
+export type UpdateCategoryInputs = z.infer<typeof updateCategorySchema>;

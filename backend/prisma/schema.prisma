@@ -23,6 +23,7 @@ model User {
   accounts      Account[]
   categories    Category[]
   transactions  Transaction[]
+  savingGoals   SavingGoal[]
 
   @@unique([email])
   @@map("user")
@@ -84,51 +85,66 @@ enum TransactionType {
 }
 
 model Category {
-  id           String          @id @default(cuid())
-  userId       String
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  name         String
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @default(now()) @updatedAt
-  icon         String
-  type         TransactionType @default(INCOME)
+  id        String          @id @default(cuid())
+  userId    String
+  name      String
+  icon      String
+  type      TransactionType
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @default(now()) @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
   @@unique([userId, name, type])
+  @@index([userId])
+  @@index([type])
 }
 
 model Transaction {
-  id           String          @id @default(cuid())
-  amount       Float
-  description  String
-  date         DateTime
-  userId       String
-  user         User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type         TransactionType @default(INCOME)
-  categoryId   String
-  categoryIcon String
-  category     Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @default(now()) @updatedAt
+  id          String   @id @default(cuid())
+  amount      Decimal  @default(0)
+  description String
+  date        DateTime
+  userId      String
+  categoryId  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @default(now()) @updatedAt
+
+  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category         Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  goalContribution GoalContribution?
+
+  @@index([userId])
+  @@index([userId, categoryId])
+  @@index([userId, amount])
+  @@index([userId, date])
 }
 
-model MonthHistory {
-  userId  String
-  day     Int
-  month   Int
-  year    Int
-  income  Float
-  expense Float
+model GoalContribution {
+  id            String   @id @default(cuid())
+  goalId        String
+  transactionId String?  @unique // Link to an actual contribution if applicable
+  amount        Decimal
+  note          String?
+  createdAt     DateTime @default(now())
 
-  @@id([day, month, year, userId])
+  goal        SavingGoal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  transaction Transaction? @relation(fields: [transactionId], references: [id])
 }
 
-model YearHistory {
-  userId  String
-  month   Int
-  year    Int
-  income  Float
-  expense Float
+model SavingGoal {
+  id            String    @id @default(cuid())
+  userId        String
+  name          String
+  targetAmount  Decimal
+  currentAmount Decimal   @default(0)
+  deadline      DateTime?
+  icon          String
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @default(now())
 
-  @@id([month, year, userId])
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  goalContributions GoalContribution[]
 }

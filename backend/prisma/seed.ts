@@ -1,6 +1,5 @@
 import type { TransactionType } from "@/generated/prisma/enums.js";
 import type { PrismaClient } from "@prisma/client/extension";
-import { Database } from "@utils/prisma.js";
 
 export async function seed(prisma: PrismaClient) {
 	console.log("Seeding test data...");
@@ -62,7 +61,7 @@ export async function seed(prisma: PrismaClient) {
 	for (const category of categories) {
 		await prisma.category.upsert({
 			where: {
-				name_userId_type: {
+				userId_name_type: {
 					userId: category.userId,
 					name: category.name,
 					type: category.type as TransactionType,
@@ -81,7 +80,6 @@ export async function seed(prisma: PrismaClient) {
 				description: "Breakfast, Lunch & Supper",
 				date: new Date("2025-09-30"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
-				categoryIcon: "beef-steak",
 				userId: user.id,
 			},
 			{
@@ -90,7 +88,6 @@ export async function seed(prisma: PrismaClient) {
 				description: "Breakfast",
 				date: new Date("2025-10-01"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
-				categoryIcon: "beef-steak",
 				userId: user.id,
 			},
 			{
@@ -99,7 +96,6 @@ export async function seed(prisma: PrismaClient) {
 				description: "Lunch",
 				date: new Date("2025-10-01"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
-				categoryIcon: "beef-steak",
 				userId: user.id,
 			},
 			{
@@ -108,13 +104,11 @@ export async function seed(prisma: PrismaClient) {
 				description: "Supper",
 				date: new Date("2025-10-01"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
-				categoryIcon: "beef-steak",
 				userId: user.id,
 			},
 			{
 				id: "cmhpyr3lo0003341rp9nvtr9y",
 				categoryId: "cmhorgpet000234ucpgpk6k78",
-				categoryIcon: "money-bag",
 				userId: user.id,
 				amount: 65000,
 				date: new Date("2025-10-01"),
@@ -124,7 +118,6 @@ export async function seed(prisma: PrismaClient) {
 				id: "cmhpyr3lo0004341rys4guiql",
 				categoryId: "cmhorgpet000134uc0y6x2phj",
 				date: new Date("2025-10-2"),
-				categoryIcon: "credit-card",
 				userId: user.id,
 				description: "Rent & Bills for period starting 1st October 2025",
 				amount: 6500.0,
