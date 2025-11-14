@@ -1,8 +1,8 @@
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type { TransactionType } from "@/generated/prisma/enums.js";
 import type {
-    CreateCategoryInputs,
-    UpdateCategoryInputs,
+	CreateCategoryInputs,
+	UpdateCategoryInputs,
 } from "@/types/category.js";
 import { prisma as defaultPrisma } from "@utils/prisma.js";
 import { HTTPException } from "hono/http-exception";

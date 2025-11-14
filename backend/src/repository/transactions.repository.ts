@@ -1,11 +1,11 @@
+import { prisma as defaultPrisma } from "@utils/prisma.js";
+import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
 	CreateTransactionInputs,
 	TransactionQuery,
 	UpdateTransactionInputs,
 } from "@/types/transactions.js";
-import { prisma as defaultPrisma } from "@utils/prisma.js";
-import { HTTPException } from "hono/http-exception";
 
 export async function createTransaction(
 	userId: string,
@@ -73,6 +73,9 @@ export async function getTransactionById(
 			userId,
 			id,
 		},
+		include: {
+			category: true,
+		},
 	});
 }
 
@@ -81,11 +84,24 @@ export async function deleteTransactionById(
 	userId: string,
 	prisma: PrismaClient = defaultPrisma,
 ) {
-	return await prisma.transaction.delete({
-		where: {
-			userId,
-			id,
-		},
+	return prisma.$transaction(async (tx) => {
+		const transaction = await tx.transaction.findUnique({
+			where: {
+				userId,
+				id,
+			},
+		});
+
+		if (!transaction) {
+			throw new HTTPException(404, { message: "Transaction not found" });
+		}
+
+		return tx.transaction.delete({
+			where: {
+				id,
+				userId,
+			},
+		});
 	});
 }
 

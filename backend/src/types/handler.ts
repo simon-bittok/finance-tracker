@@ -1,6 +1,6 @@
-import type { Hono } from "hono"
+import type { Hono } from "hono";
 
 export type Router = {
-  path: string,
-  handler: Hono
-}
+	path: string;
+	handler: Hono;
+};

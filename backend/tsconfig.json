@@ -5,44 +5,22 @@
 		"strict": true,
 		"verbatimModuleSyntax": true,
 		"skipLibCheck": true,
-		"types": [
-			"node"
-		],
+		"types": ["node"],
 		"jsx": "react-jsx",
 		"jsxImportSource": "hono/jsx",
 		"outDir": "./dist",
 		"baseUrl": ".",
 		"paths": {
-			"@/*": [
-				"src/*"
-			],
-			"@lib/*": [
-				"src/lib/*"
-			],
-			"@utils/*": [
-				"src/utils/*"
-			],
-			"@routes/*": [
-				"src/routes/*"
-			],
-			"@repository/*": [
-				"src/repository/*"
-			],
-			"@middlewares/*": [
-				"src/middlewares/*"
-			],
-			"@types/*": [
-				"src/types/*"
-			],
-			"@tests/*": [
-				"tests/*"
-			],
-			"@prisma/*": [
-				"prisma/*"
-			]
+			"@/*": ["src/*"],
+			"@lib/*": ["src/lib/*"],
+			"@utils/*": ["src/utils/*"],
+			"@routes/*": ["src/routes/*"],
+			"@repository/*": ["src/repository/*"],
+			"@middlewares/*": ["src/middlewares/*"],
+			"@types/*": ["src/types/*"],
+			"@tests/*": ["tests/*"],
+			"@prisma/*": ["prisma/*"]
 		}
 	},
-	"exclude": [
-		"node_modules"
-	]
+	"exclude": ["node_modules"]
 }

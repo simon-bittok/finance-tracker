@@ -1,10 +1,10 @@
 import type { TransactionType } from "@/generated/prisma/enums.js";
 import { requireAuth } from "@/middlewares/auth.js";
 import {
-    createCategorySchema,
-    updateCategorySchema,
-    type CreateCategoryInputs,
-    type UpdateCategoryInputs,
+	createCategorySchema,
+	updateCategorySchema,
+	type CreateCategoryInputs,
+	type UpdateCategoryInputs,
 } from "@/types/category.js";
 import type { AuthType } from "@/utils/auth.js";
 import { prisma } from "@/utils/prisma.js";
@@ -29,7 +29,7 @@ app.get("/", requireAuth, async (c) => {
 		prisma,
 	);
 
-	return c.json(categories);
+	return c.json({ meta: { total: categories.length }, data: categories });
 });
 
 app.post(
@@ -38,13 +38,10 @@ app.post(
 	requireAuth,
 	async (c) => {
 		const user = c.get("user");
-		const validated : CreateCategoryInputs = c.req.valid("json");
+		const validated: CreateCategoryInputs = c.req.valid("json");
 
-		const category : categoryRepository.CreateCategory = await categoryRepository.createCategory(
-		user.id,
-			validated,
-			prisma,
-		);
+		const category: categoryRepository.CreateCategory =
+			await categoryRepository.createCategory(user.id, validated, prisma);
 
 		return c.json(category, 201);
 	},
@@ -54,11 +51,8 @@ app.get("/:id", requireAuth, async (c) => {
 	const id = c.req.param("id");
 	const user = c.get("user");
 
-	const category : categoryRepository.GetCategory = await categoryRepository.getCategoryById(
-		id,
-		user.id,
-		prisma,
-	);
+	const category: categoryRepository.GetCategory =
+		await categoryRepository.getCategoryById(id, user.id, prisma);
 
 	if (!category) {
 		return c.json({ error: "Category not found" }, 404);
@@ -76,12 +70,13 @@ app.patch(
 		const validated: UpdateCategoryInputs = c.req.valid("json");
 		const user = c.get("user");
 
-		const category : categoryRepository.UpdateCategory = await categoryRepository.updateCategoryById(
-			id,
-			user.id,
-			validated,
-			prisma,
-		);
+		const category: categoryRepository.UpdateCategory =
+			await categoryRepository.updateCategoryById(
+				id,
+				user.id,
+				validated,
+				prisma,
+			);
 
 		return c.json(category);
 	},
