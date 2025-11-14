@@ -1,11 +1,11 @@
-import type { AuthType } from "@/utils/auth.js";
 import { Hono } from "hono";
-import authRouter from "./auth.route.js";
-import userRouter from "./users.route.js";
-import categoryRouter from "./category.route.js";
-import userSettingsRouter from "./user-settings.route.js";
-import transactionRouter from "./transactions.route.js";
 import { cors } from "hono/cors";
+import type { AuthType } from "@/utils/auth.js";
+import authRouter from "./auth.route.js";
+import categoryRouter from "./category.route.js";
+import transactionRouter from "./transactions.route.js";
+import userSettingsRouter from "./user-settings.route.js";
+import userRouter from "./users.route.js";
 
 const router = new Hono<{ Bindings: AuthType }>({ strict: false });
 

@@ -1,11 +1,29 @@
+import routes from "@routes/index.js";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { logger } from "hono/logger";
-import routes from "@routes/index.js";
+import { pinoLogger } from "hono-pino";
+import pino from "pino";
+import type { DebugLogOptions } from "hono-pino/debug-log";
 
 const app = new Hono();
 
-app.use(logger());
+const options: DebugLogOptions = {
+	colorEnabled: true,
+};
+
+app.use(
+	pinoLogger({
+		pino: pino({
+			base: null,
+			level: "debug",
+			transport: {
+				target: "hono-pino/debug-log",
+				options,
+			},
+			timestamp: pino.stdTimeFunctions.unixTime,
+		}),
+	}),
+);
 
 app.notFound((c) => {
 	const pathname = c.req.path;
