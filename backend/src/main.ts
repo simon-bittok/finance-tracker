@@ -2,8 +2,8 @@ import routes from "@routes/index.js";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { pinoLogger } from "hono-pino";
-import pino from "pino";
 import type { DebugLogOptions } from "hono-pino/debug-log";
+import pino from "pino";
 
 const app = new Hono();
 

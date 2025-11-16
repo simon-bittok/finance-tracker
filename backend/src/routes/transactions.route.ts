@@ -1,11 +1,14 @@
 import { zValidator } from "@hono/zod-validator";
+import type { CreateTransaction, GetAllTransactions, GetTransactionById } from "@repository/transactions.repository.js";
 import * as transactionRepository from "@repository/transactions.repository.js";
+import type { User } from "better-auth";
 import { Hono } from "hono";
 import { TransactionType } from "@/generated/prisma/enums.js";
 import { requireAuth } from "@/middlewares/auth.js";
 import {
-	createTransactionSchema,
-	updateTransactionSchema,
+  type CreateTransactionInputs,
+  createTransactionSchema,
+  updateTransactionSchema,
 } from "@/types/transactions.js";
 import type { AuthType } from "@/utils/auth.js";
 import { prisma } from "@/utils/prisma.js";
@@ -19,10 +22,10 @@ app.post(
 	zValidator("json", createTransactionSchema),
 	requireAuth,
 	async (c) => {
-		const validated = c.req.valid("json");
-		const user = c.get("user");
+		const validated: CreateTransactionInputs = c.req.valid("json");
+		const user: User = c.get("user");
 
-		const transaction = await transactionRepository.createTransaction(
+		const transaction: CreateTransaction = await transactionRepository.createTransaction(
 			user.id,
 			validated,
 			prisma,
@@ -33,7 +36,7 @@ app.post(
 );
 
 app.get("/", requireAuth, async (c) => {
-	const user = c.get("user");
+	const user : User = c.get("user");
 
 	const { from, to, type } = c.req.query();
 
@@ -57,7 +60,7 @@ app.get("/", requireAuth, async (c) => {
 				: TransactionType.EXPENSE;
 	}
 
-	const transactions = await transactionRepository.getAllTransactions(
+	const transactions: GetAllTransactions = await transactionRepository.getAllTransactions(
 		user.id,
 		{ from: fromDate, to: toDate, type: transactionType },
 		prisma,
@@ -72,10 +75,10 @@ app.get("/", requireAuth, async (c) => {
 });
 
 app.get("/:id", requireAuth, async (c) => {
-	const user = c.get("user");
+	const user: User = c.get("user");
 	const id = c.req.param("id");
 
-	const transaction = await transactionRepository.getTransactionById(
+	const transaction : GetTransactionById = await transactionRepository.getTransactionById(
 		id,
 		user.id,
 		prisma,
@@ -89,13 +92,13 @@ app.patch(
 	zValidator("json", updateTransactionSchema),
 	requireAuth,
 	async (c) => {
-		const user = c.get("user");
+		const userId = c.get("userId");
 		const id = c.req.param("id");
 		const validated = c.req.valid("json");
 
 		const transaction = await transactionRepository.updateTransactionById(
 			id,
-			user.id,
+			userId,
 			validated,
 			prisma,
 		);
@@ -105,12 +108,12 @@ app.patch(
 );
 
 app.delete("/:id", requireAuth, async (c) => {
-	const user = c.get("user");
+  const userId = c.get("userId");
 	const id = c.req.param("id");
 
 	const transaction = await transactionRepository.deleteTransactionById(
 		id,
-		user.id,
+		userId,
 		prisma,
 	);
 

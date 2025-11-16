@@ -33,4 +33,5 @@ routers.forEach((route) => {
 	router.basePath("/api").route(route.path, route.handler);
 });
 
+export type RouterType = (typeof routers)[number];
 export default router;

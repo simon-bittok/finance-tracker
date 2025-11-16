@@ -1,10 +1,11 @@
-import { auth } from "@/utils/auth.js";
 import type { Session, User } from "better-auth/types";
 import { createMiddleware } from "hono/factory";
+import { auth } from "@/utils/auth.js";
 
 type AuthVariable = {
 	user: User;
 	session: Session;
+  userId: string;
 };
 
 export const requireAuth = createMiddleware<{ Variables: AuthVariable }>(
@@ -24,6 +25,7 @@ export const requireAuth = createMiddleware<{ Variables: AuthVariable }>(
 
 		c.set("user", session.user);
 		c.set("session", session.session);
+    c.set("userId", session.user.id);
 
 		await next();
 	},
