@@ -1,15 +1,15 @@
+import { testDb } from "@tests/setup.js";
+import { describe, expect, it } from "vitest";
 import {
+	type CreateTransaction,
 	createTransaction,
 	deleteTransactionById,
+	type GetAllTransactions,
+	type GetTransactionById,
 	getAllTransactions,
 	getTransactionById,
 	updateTransactionById,
-	type CreateTransaction,
-	type GetAllTransactions,
-	type GetTransactionById,
 } from "@/repository/transactions.repository.js";
-import { testDb } from "@tests/setup.js";
-import { describe, expect, it } from "vitest";
 
 const userId = "ITU2VHecgzOmw7fftiXq3oH8RzK9zRXg";
 const categoryId = "cmhorgpet000334ucyllo6vhh";
@@ -55,6 +55,8 @@ describe("Transaction repository", async () => {
 			},
 			testDb.prisma,
 		);
+
+		console.log(transactions);
 
 		expect(transactions.length).toBe(1);
 	});

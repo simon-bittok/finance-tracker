@@ -1,5 +1,5 @@
-import type { TransactionType } from "@/generated/prisma/enums.js";
 import type { PrismaClient } from "@prisma/client/extension";
+import type { TransactionType } from "@/generated/prisma/enums.js";
 
 export async function seed(prisma: PrismaClient) {
 	console.log("Seeding test data...");
@@ -124,6 +124,58 @@ export async function seed(prisma: PrismaClient) {
 			},
 		],
 	});
+
+	const savingGoals = [
+		{
+			id: "cmi1oxut4000134xotpi39uhj",
+			targetAmount: 3525.65,
+			name: "Holiday to Seychelles",
+			deadline: new Date("2025-12-25"),
+			currentAmount: 1555.0,
+			isActive: true,
+			icon: "beach",
+			userId: user.id,
+		},
+
+		{
+			id: "cmi1oxut4000124xotpi39uhj",
+			targetAmount: 4500.0,
+			name: "Education Fund",
+			deadline: new Date("2026-01-15"),
+			icon: "university",
+			currentAmount: 2256,
+			isActive: true,
+			userId: user.id,
+		},
+	];
+
+	for (const goal of savingGoals) {
+		await prisma.savingGoal.upsert({
+			where: {
+				userId_name_targetAmount_deadline: {
+					userId: goal.userId,
+					targetAmount: goal.targetAmount,
+					deadline: goal.deadline,
+					name: goal.name,
+				},
+			},
+			update: {},
+			create: {
+				id: goal.id,
+				name: goal.name,
+				icon: goal.icon,
+				deadline: goal.deadline,
+				isActive: goal.isActive,
+				currentAmount: goal.currentAmount,
+				targetAmount: goal.targetAmount,
+				user: {
+					connect: {
+						id: goal.userId,
+					},
+				},
+			},
+		});
+	}
 
 	console.log("Seeding completed");
 }

@@ -1,6 +1,10 @@
 import { prisma as defaultPrisma } from "@utils/prisma.js";
 import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
+import type {
+	CreateSavingGoalInputs,
+	UpdateSavingGoalInputs,
+} from "@/types/savingGoals.js";
 
 export async function getAllSavingGoals(
 	userId: string,
@@ -10,6 +14,81 @@ export async function getAllSavingGoals(
 		where: {
 			userId,
 		},
+	});
+}
+
+export async function createSavingGoal(
+	userId: string,
+	params: CreateSavingGoalInputs,
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const { deadline, name, targetAmount, icon } = params;
+	return await prisma.$transaction(async (tx) => {
+		// check to see the goal is unique: name, userId & deadline & targetAmount
+		const exists = await tx.savingGoal.findUnique({
+			where: {
+				userId_name_targetAmount_deadline: {
+					userId,
+					targetAmount,
+					deadline,
+					name,
+				},
+			},
+		});
+
+		if (exists) {
+			throw new HTTPException(409, { message: "Saving goal already exists" });
+		}
+
+		return await tx.savingGoal.create({
+			data: {
+				userId,
+				targetAmount,
+				deadline,
+				name,
+				icon,
+				currentAmount: 0,
+				isActive: true,
+			},
+		});
+	});
+}
+
+export async function updateSavingGoal(
+	id: string,
+	userId: string,
+	params: UpdateSavingGoalInputs,
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const { deadline, name, targetAmount, isActive, icon } = params;
+
+	return await prisma.$transaction(async (tx) => {
+		const exists = await tx.savingGoal.findUnique({
+			where: {
+				userId,
+				id,
+			},
+		});
+
+		if (!exists) {
+			throw new HTTPException(422, {
+				message: "Cannot update non existent Saving Goal",
+			});
+		}
+
+		return await tx.savingGoal.update({
+			where: {
+				userId,
+				id,
+			},
+			data: {
+				deadline: deadline ?? exists.deadline,
+				name: name ?? exists.name,
+				targetAmount: targetAmount ?? exists.targetAmount,
+				isActive: isActive ?? exists.isActive,
+				icon: icon ?? exists.icon,
+			},
+		});
 	});
 }
 
@@ -24,12 +103,6 @@ export async function getSavingGoalById(
 			userId,
 		},
 	});
-
-	if (!savingGoal) {
-		throw new HTTPException(404, {
-			message: "Saving Goal not found",
-		});
-	}
 
 	return savingGoal;
 }

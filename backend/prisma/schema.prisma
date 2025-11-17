@@ -147,4 +147,6 @@ model SavingGoal {
 
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   goalContributions GoalContribution[]
+
+  @@unique([userId, name, targetAmount, deadline])
 }
