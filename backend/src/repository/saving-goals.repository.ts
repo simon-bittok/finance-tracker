@@ -3,6 +3,7 @@ import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
 	CreateSavingGoalInputs,
+	GoalContributionInput,
 	UpdateSavingGoalInputs,
 } from "@/types/savingGoals.js";
 
@@ -13,6 +14,9 @@ export async function getAllSavingGoals(
 	return prisma.savingGoal.findMany({
 		where: {
 			userId,
+		},
+		include: {
+			goalContributions: true,
 		},
 		orderBy: {
 			deadline: "asc",
@@ -105,6 +109,9 @@ export async function getSavingGoalById(
 			id,
 			userId,
 		},
+		include: {
+			goalContributions: true,
+		},
 	});
 
 	return savingGoal;
@@ -138,8 +145,43 @@ export async function deleteSavingGoal(
 	});
 }
 
+export async function addGoalContribution(
+	userId: string,
+	params: GoalContributionInput,
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const { goalId, amount, transactionId, note } = params;
+	return await prisma.$transaction(async (tx) => {
+		const contribution = await tx.goalContribution.create({
+			data: {
+				goalId,
+				note,
+				amount,
+				transactionId,
+			},
+		});
+
+		const savingGoal = await tx.savingGoal.update({
+			where: {
+				id: goalId,
+				userId,
+			},
+			data: {
+				currentAmount: {
+					increment: amount,
+				},
+			},
+		});
+
+		return { contribution, savingGoal };
+	});
+}
+
 export type GetAllSavingGoals = Awaited<ReturnType<typeof getAllSavingGoals>>;
 export type GetSavingGoalById = Awaited<ReturnType<typeof getSavingGoalById>>;
 export type DeleteSavingGoal = Awaited<ReturnType<typeof deleteSavingGoal>>;
 export type UpdateSavingGoal = Awaited<ReturnType<typeof updateSavingGoal>>;
 export type CreateSavingGoal = Awaited<ReturnType<typeof createSavingGoal>>;
+export type AddGoalContribution = Awaited<
+	ReturnType<typeof addGoalContribution>
+>;

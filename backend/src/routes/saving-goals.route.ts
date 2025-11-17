@@ -5,6 +5,7 @@ import { HTTPException } from "hono/http-exception";
 import { requireAuth } from "@/middlewares/auth.js";
 import {
 	createSavingGoalSchema,
+	goalContribution,
 	updateSavingGoalSchema,
 } from "@/types/savingGoals.js";
 import type { AuthType } from "@/utils/auth.js";
@@ -97,6 +98,24 @@ app.delete("/:id", requireAuth, async (c) => {
 		200,
 	);
 });
+
+app.post(
+	"/contribute",
+	zValidator("json", goalContribution),
+	requireAuth,
+	async (c) => {
+		const userId = c.get("userId");
+		const validated = c.req.valid("json");
+
+		const contribution = await savingGoalsRepository.addGoalContribution(
+			userId,
+			validated,
+			prisma,
+		);
+
+		return c.json(contribution, 201);
+	},
+);
 
 export default {
 	path: "/saving-goals",

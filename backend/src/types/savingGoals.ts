@@ -30,3 +30,12 @@ export const updateSavingGoalSchema = z.object({
 });
 
 export type UpdateSavingGoalInputs = z.infer<typeof updateSavingGoalSchema>;
+
+export const goalContribution = z.object({
+	goalId: z.string().min(1, "Goal ID is required"),
+	amount: z.coerce.number().positive(),
+	note: z.string().optional(),
+	transactionId: z.string().optional(),
+});
+
+export type GoalContributionInput = z.infer<typeof goalContribution>;
