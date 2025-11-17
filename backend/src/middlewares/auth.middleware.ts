@@ -1,6 +1,6 @@
 import type { Session, User } from "better-auth/types";
 import { createMiddleware } from "hono/factory";
-import { auth } from "@/utils/auth.js";
+import { auth } from "@/utils/auth.utils.js";
 
 type AuthVariable = {
 	user: User;

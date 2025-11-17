@@ -4,13 +4,13 @@ import * as transactionRepository from "@repository/transactions.repository.js";
 import type { User } from "better-auth";
 import { Hono } from "hono";
 import { TransactionType } from "@/generated/prisma/enums.js";
-import { requireAuth } from "@/middlewares/auth.js";
+import { requireAuth } from "@/middlewares/auth.middleware.js";
 import {
   type CreateTransactionInputs,
   createTransactionSchema,
   updateTransactionSchema,
 } from "@/types/transactions.js";
-import type { AuthType } from "@/utils/auth.js";
+import type { AuthType } from "@/utils/auth.utils.js";
 import { prisma } from "@/utils/prisma.js";
 
 const app = new Hono<{ Bindings: AuthType }>({

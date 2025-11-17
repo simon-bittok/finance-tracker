@@ -1,15 +1,15 @@
 import type { TransactionType } from "@/generated/prisma/enums.js";
-import { requireAuth } from "@/middlewares/auth.js";
+import { requireAuth } from "@/middlewares/auth.middleware.js";
+import * as categoryRepository from "@/repository/category.repository.js";
 import {
-	createCategorySchema,
-	updateCategorySchema,
-	type CreateCategoryInputs,
-	type UpdateCategoryInputs,
+    createCategorySchema,
+    updateCategorySchema,
+    type CreateCategoryInputs,
+    type UpdateCategoryInputs,
 } from "@/types/category.js";
-import type { AuthType } from "@/utils/auth.js";
+import type { AuthType } from "@/utils/auth.utils.js";
 import { prisma } from "@/utils/prisma.js";
 import { zValidator } from "@hono/zod-validator";
-import * as categoryRepository from "@/repository/category.repository.js";
 import { Hono } from "hono";
 
 const app = new Hono<{ Bindings: AuthType }>({

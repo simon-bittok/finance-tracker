@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { auth, type AuthType } from "@/utils/auth.js";
+import { auth, type AuthType } from "@/utils/auth.utils.js";
 
 const app = new Hono<{ Bindings: AuthType }>({
 	strict: false,

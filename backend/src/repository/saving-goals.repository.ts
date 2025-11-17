@@ -5,7 +5,7 @@ import type {
 	CreateSavingGoalInputs,
 	GoalContributionInput,
 	UpdateSavingGoalInputs,
-} from "@/types/savingGoals.js";
+} from "@/types/savingGoals.types.js";
 
 export async function getAllSavingGoals(
 	userId: string,

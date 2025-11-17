@@ -2,13 +2,13 @@ import { zValidator } from "@hono/zod-validator";
 import * as savingGoalsRepository from "@repository/saving-goals.repository.js";
 import { Hono } from "hono";
 import { HTTPException } from "hono/http-exception";
-import { requireAuth } from "@/middlewares/auth.js";
+import { requireAuth } from "@/middlewares/auth.middleware.js";
 import {
 	createSavingGoalSchema,
 	goalContribution,
 	updateSavingGoalSchema,
-} from "@/types/savingGoals.js";
-import type { AuthType } from "@/utils/auth.js";
+} from "@/types/savingGoals.types.js";
+import type { AuthType } from "@/utils/auth.utils.js";
 import { prisma } from "@/utils/prisma.js";
 
 const app = new Hono<{ Bindings: AuthType }>({ strict: false });
