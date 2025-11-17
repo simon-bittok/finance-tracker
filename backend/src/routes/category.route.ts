@@ -6,9 +6,9 @@ import {
     updateCategorySchema,
     type CreateCategoryInputs,
     type UpdateCategoryInputs,
-} from "@/types/category.js";
+} from "@/types/category.types.js";
 import type { AuthType } from "@/utils/auth.utils.js";
-import { prisma } from "@/utils/prisma.js";
+import { prisma } from "@/utils/prisma.utils.js";
 import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 

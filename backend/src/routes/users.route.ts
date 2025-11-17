@@ -1,6 +1,6 @@
-import { requireAuth } from "@/middlewares/auth.js";
-import type { AuthType } from "@/utils/auth.js";
 import { Hono } from "hono";
+import { requireAuth } from "@/middlewares/auth.middleware.js";
+import type { AuthType } from "@/utils/auth.utils.js";
 
 const app = new Hono<{ Bindings: AuthType }>({
 	strict: false,

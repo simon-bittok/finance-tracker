@@ -9,9 +9,9 @@ import {
   type CreateTransactionInputs,
   createTransactionSchema,
   updateTransactionSchema,
-} from "@/types/transactions.js";
+} from "@/types/transactions.types.js";
 import type { AuthType } from "@/utils/auth.utils.js";
-import { prisma } from "@/utils/prisma.js";
+import { prisma } from "@/utils/prisma.utils.js";
 
 const app = new Hono<{ Bindings: AuthType }>({
 	strict: false,

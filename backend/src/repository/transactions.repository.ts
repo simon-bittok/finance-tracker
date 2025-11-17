@@ -1,11 +1,11 @@
-import { prisma as defaultPrisma } from "@utils/prisma.js";
-import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
-	CreateTransactionInputs,
-	TransactionQuery,
-	UpdateTransactionInputs,
-} from "@/types/transactions.js";
+    CreateTransactionInputs,
+    TransactionQuery,
+    UpdateTransactionInputs,
+} from "@/types/transactions.types.js";
+import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
+import { HTTPException } from "hono/http-exception";
 
 export async function createTransaction(
 	userId: string,

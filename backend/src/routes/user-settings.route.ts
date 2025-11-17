@@ -1,8 +1,8 @@
-import { requireAuth } from "@/middlewares/auth.js";
-import type { AuthType } from "@/utils/auth.js";
-import { prisma } from "@/utils/prisma.js";
 import * as userSettingsRepository from "@repository/user-settings.repository.js";
 import { Hono } from "hono";
+import { requireAuth } from "@/middlewares/auth.middleware.js";
+import type { AuthType } from "@/utils/auth.utils.js";
+import { prisma } from "@/utils/prisma.utils.js";
 
 const app = new Hono<{ Bindings: AuthType }>({
 	strict: false,

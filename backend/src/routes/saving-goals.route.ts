@@ -9,7 +9,7 @@ import {
 	updateSavingGoalSchema,
 } from "@/types/savingGoals.types.js";
 import type { AuthType } from "@/utils/auth.utils.js";
-import { prisma } from "@/utils/prisma.js";
+import { prisma } from "@/utils/prisma.utils.js";
 
 const app = new Hono<{ Bindings: AuthType }>({ strict: false });
 

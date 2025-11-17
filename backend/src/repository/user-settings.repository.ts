@@ -1,6 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client.js";
-import { prisma as defaultPrisma } from "@/utils/prisma.js";
-import { HTTPException } from "hono/http-exception";
+import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 
 export async function updateUserCurrency(
 	userId: string,

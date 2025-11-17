@@ -1,7 +1,7 @@
-import { PrismaClient } from "@/generated/prisma/client.js";
 import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, unlinkSync } from "node:fs";
 import path from "node:path";
+import { PrismaClient } from "@/generated/prisma/client.js";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 

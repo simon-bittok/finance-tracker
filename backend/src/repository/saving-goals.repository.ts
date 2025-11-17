@@ -1,4 +1,4 @@
-import { prisma as defaultPrisma } from "@utils/prisma.js";
+import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
