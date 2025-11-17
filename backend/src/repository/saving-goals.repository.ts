@@ -14,6 +14,9 @@ export async function getAllSavingGoals(
 		where: {
 			userId,
 		},
+		orderBy: {
+			deadline: "asc",
+		},
 	});
 }
 
@@ -138,3 +141,5 @@ export async function deleteSavingGoal(
 export type GetAllSavingGoals = Awaited<ReturnType<typeof getAllSavingGoals>>;
 export type GetSavingGoalById = Awaited<ReturnType<typeof getSavingGoalById>>;
 export type DeleteSavingGoal = Awaited<ReturnType<typeof deleteSavingGoal>>;
+export type UpdateSavingGoal = Awaited<ReturnType<typeof updateSavingGoal>>;
+export type CreateSavingGoal = Awaited<ReturnType<typeof createSavingGoal>>;
