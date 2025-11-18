@@ -33,7 +33,7 @@ export async function createTransaction(
       accountId,
       amount,
       categoryId: category.id,
-      description: description || "",
+      description: description ?? "",
       date: date,
     },
   });

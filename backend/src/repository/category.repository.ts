@@ -3,112 +3,112 @@ import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type { TransactionType } from "@/generated/prisma/enums.js";
 import type {
-	CreateCategoryInputs,
-	UpdateCategoryInputs,
+  CreateCategoryInputs,
+  UpdateCategoryInputs,
 } from "@/types/category.types.js";
 
 export async function createCategory(
-	userId: string,
-	data: CreateCategoryInputs,
-	prisma: PrismaClient = defaultPrisma,
+  userId: string,
+  data: CreateCategoryInputs,
+  prisma: PrismaClient = defaultPrisma,
 ) {
-	const { name, icon, type } = data;
+  const { name, icon, type } = data;
 
-	const existing = await prisma.category.findFirst({
-		where: {
-			userId,
-			name,
-			type,
-		},
-	});
+  const existing = await prisma.category.findFirst({
+    where: {
+      userId,
+      name,
+      type,
+    },
+  });
 
-	if (existing) {
-		throw new HTTPException(409, { message: "Category already exists" });
-	}
+  if (existing) {
+    throw new HTTPException(409, { message: "Category already exists" });
+  }
 
-	return await prisma.category.create({
-		data: {
-			userId,
-			name,
-			icon,
-			type,
-		},
-	});
+  return await prisma.category.create({
+    data: {
+      userId,
+      name,
+      icon,
+      type,
+    },
+  });
 }
 
 export async function getAllCategories(
-	userId: string,
-	type?: TransactionType,
-	prisma: PrismaClient = defaultPrisma,
+  userId: string,
+  type?: TransactionType,
+  prisma: PrismaClient = defaultPrisma,
 ) {
-	return await prisma.category.findMany({
-		where: {
-			userId,
-			...(type && { type }),
-		},
-		include: {
-			transactions: true,
-		},
-		orderBy: {
-			createdAt: "desc",
-		},
-	});
+  return await prisma.category.findMany({
+    where: {
+      userId,
+      ...(type && { type }),
+    },
+    include: {
+      transactions: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 }
 
 export async function getCategoryById(
-	id: string,
-	userId: string,
-	prisma: PrismaClient = defaultPrisma,
+  id: string,
+  userId: string,
+  prisma: PrismaClient = defaultPrisma,
 ) {
-	return await prisma.category.findUnique({
-		where: {
-			userId,
-			id,
-		},
-		include: {
-			transactions: true,
-		},
-	});
+  return await prisma.category.findUnique({
+    where: {
+      userId,
+      id,
+    },
+    include: {
+      transactions: true,
+    },
+  });
 }
 
 export async function deleteCategoryById(
-	id: string,
-	userId: string,
-	prisma: PrismaClient = defaultPrisma,
+  id: string,
+  userId: string,
+  prisma: PrismaClient = defaultPrisma,
 ) {
-	return await prisma.category.delete({
-		where: {
-			id,
-			userId,
-		},
-	});
+  return await prisma.category.delete({
+    where: {
+      id,
+      userId,
+    },
+  });
 }
 
 export async function updateCategoryById(
-	id: string,
-	userId: string,
-	params: UpdateCategoryInputs,
-	prisma: PrismaClient = defaultPrisma,
+  id: string,
+  userId: string,
+  params: UpdateCategoryInputs,
+  prisma: PrismaClient = defaultPrisma,
 ) {
-	const category = await getCategoryById(id, userId, prisma);
+  const category = await getCategoryById(id, userId, prisma);
 
-	if (!category) {
-		throw new HTTPException(404, {
-			message: "Category not found",
-		});
-	}
+  if (!category) {
+    throw new HTTPException(404, {
+      message: "Category not found",
+    });
+  }
 
-	return await prisma.category.update({
-		where: {
-			userId,
-			id,
-		},
-		data: {
-			name: params.name ?? category.name,
-			type: params.type ?? category.type,
-			icon: params.icon ?? category.icon,
-		},
-	});
+  return await prisma.category.update({
+    where: {
+      userId,
+      id,
+    },
+    data: {
+      name: params.name ?? category.name,
+      type: params.type ?? category.type,
+      icon: params.icon ?? category.icon,
+    },
+  });
 }
 
 export type GetCategories = Awaited<ReturnType<typeof getAllCategories>>;
