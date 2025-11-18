@@ -36,6 +36,7 @@ export const goalContribution = z.object({
 	amount: z.coerce.number().positive(),
 	note: z.string().optional(),
 	transactionId: z.string().optional(),
+	transferId: z.string().optional(),
 });
 
 export type GoalContributionInput = z.infer<typeof goalContribution>;

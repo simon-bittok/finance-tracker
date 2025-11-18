@@ -1,4 +1,5 @@
 import type { PrismaClient } from "@/generated/prisma/client.js";
+import type { UserSettingsInputs } from "@/types/userSettings.types.js";
 import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 
 export async function updateUserCurrency(
@@ -18,9 +19,11 @@ export async function updateUserCurrency(
 
 export async function createUserSettings(
 	userId: string,
-	currency: string | undefined = "USD",
+	params: UserSettingsInputs,
 	prisma: PrismaClient = defaultPrisma,
 ) {
+	const currency = params.currency ?? "USD";
+
 	return await prisma.userSettings.create({
 		data: {
 			currency,
@@ -40,7 +43,7 @@ export async function getUserSettings(
 	});
 
 	if (!settings) {
-		settings = await createUserSettings(userId, undefined, prisma);
+		settings = await createUserSettings(userId, {}, prisma);
 	}
 
 	return settings;

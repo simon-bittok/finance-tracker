@@ -1,5 +1,5 @@
 import { seed } from "@prisma/seed.js";
-import { Database as TestDatabase } from "@utils/prisma.js";
+import { Database as TestDatabase } from "@utils/prisma.utils.js";
 import { afterAll, afterEach, beforeAll, beforeEach } from "vitest";
 
 export let testDb: TestDatabase;

@@ -11,19 +11,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// -------------------------Enums-----------------------
+
+enum AccountType {
+  WALLET
+  BANK
+  MOBILE_MONEY
+  CREDIT
+  SAVINGS
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+// -----------------------------Auth Models----------------------
+//  Authentication Tables created by Better Auth
+// --------------------------------------------------------------
+
 model User {
-  id            String        @id
-  name          String
-  email         String
-  emailVerified Boolean       @default(false)
-  image         String?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @default(now()) @updatedAt
-  sessions      Session[]
-  accounts      Account[]
-  categories    Category[]
-  transactions  Transaction[]
-  savingGoals   SavingGoal[]
+  id                String             @id
+  name              String
+  email             String
+  emailVerified     Boolean            @default(false)
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now()) @updatedAt
+  sessions          Session[]
+  accounts          Account[]
+  categories        Category[]
+  transactions      Transaction[]
+  savingGoals       SavingGoal[]
+  financialAccounts FinancialAccount[]
+  userSettings      UserSettings[]
+  tags              Tag[]
 
   @@unique([email])
   @@map("user")
@@ -74,14 +96,37 @@ model Verification {
   @@map("verification")
 }
 
+// -------------------- My Models -----------------------------
+
 model UserSettings {
-  userId   String @id
-  currency String
+  userId   String  @id
+  currency String  @default("KES")
+  timezone String?
+  local    String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-enum TransactionType {
-  INCOME
-  EXPENSE
+//------------------ Real Financial Account such as Wallet, Bank account, Mpesa etc
+
+model FinancialAccount {
+  id        String      @id @default(cuid())
+  userId    String
+  name      String
+  type      AccountType
+  balance   Decimal     @default(0)
+  currency  String      @default("KES")
+  metadata  Json? // Store provider specific data
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions  Transaction[]
+  transfersFrom Transfer[]    @relation("TransferFrom")
+  transfersTo   Transfer[]    @relation("TransferTo")
+
+  @@index([userId])
+  @@index([name, type])
 }
 
 model Category {
@@ -96,24 +141,33 @@ model Category {
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions Transaction[]
 
-  @@unique([userId, name, type])
+  @@index([userId, name, type])
   @@index([userId])
   @@index([type])
 }
 
 model Transaction {
-  id          String   @id @default(cuid())
-  amount      Decimal  @default(0)
-  description String
+  id          String    @id @default(cuid())
+  amount      Decimal   @default(0)
+  description String?
   date        DateTime
+  isTransfer  Boolean   @default(false)
+  transferId  String? // When transfer = True will reference Transfer.id
   userId      String
+  accountId   String
   categoryId  String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @default(now()) @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @default(now()) @updatedAt
+  metadata    Json?
+  // Allows for soft deletions
+  deletedAt   DateTime?
 
-  user             User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  category         Category          @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  goalContribution GoalContribution?
+  user                    User                     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category                Category                 @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  financialAccount        FinancialAccount         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  goalContribution        GoalContribution?
+  transactionAttatchments TransactionAttatchment[]
+  transactionTags         TransactionTag[]
 
   @@index([userId])
   @@index([userId, categoryId])
@@ -121,29 +175,77 @@ model Transaction {
   @@index([userId, date])
 }
 
+// Represents cash transfers from on FA to another ie. Bank -> Cash, Mpesa -> Savings
+model Transfer {
+  id            String   @id @default(cuid())
+  userId        String
+  fromAccountId String
+  toAccountId   String
+  amount        Decimal
+  createdAt     DateTime @default(now())
+
+  fromAccount       FinancialAccount   @relation("TransferFrom", fields: [fromAccountId], references: [id], onDelete: Restrict)
+  toAccount         FinancialAccount   @relation("TransferTo", fields: [toAccountId], references: [id], onDelete: Restrict)
+  goalContributions GoalContribution[]
+}
+
+// Think of receipts, confirmation messages
+model TransactionAttatchment {
+  id            String   @id @default(cuid())
+  transactionId String
+  url           String
+  mimetype      String
+  createdAt     DateTime @default(now())
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+}
+
+model Tag {
+  id     String @id @default(cuid())
+  name   String
+  userId String
+
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactionTags TransactionTag[]
+
+  @@unique([userId, name])
+}
+
+model TransactionTag {
+  transactionId String
+  tagId         String
+
+  transaction Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  tag         Tag         @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([transactionId, tagId])
+}
+
 model GoalContribution {
   id            String   @id @default(cuid())
   goalId        String
-  transactionId String?  @unique // Link to an actual contribution if applicable
   amount        Decimal
   note          String?
+  transactionId String?  @unique // Link to an actual contribution if applicable
+  transferId    String? // Link if contribution came from funds transfer
   createdAt     DateTime @default(now())
 
   goal        SavingGoal   @relation(fields: [goalId], references: [id], onDelete: Cascade)
   transaction Transaction? @relation(fields: [transactionId], references: [id])
+  transfer    Transfer?    @relation(fields: [transferId], references: [id])
 }
 
 model SavingGoal {
-  id            String    @id @default(cuid())
-  userId        String
-  name          String
-  targetAmount  Decimal
-  currentAmount Decimal   @default(0)
-  deadline      DateTime?
-  icon          String
-  isActive      Boolean   @default(true)
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @default(now())
+  id           String    @id @default(cuid())
+  userId       String
+  name         String
+  targetAmount Decimal
+  deadline     DateTime?
+  icon         String
+  isActive     Boolean   @default(true)
+  metadata     Json?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @default(now())
 
   user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
   goalContributions GoalContribution[]

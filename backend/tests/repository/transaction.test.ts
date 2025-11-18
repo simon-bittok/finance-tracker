@@ -13,6 +13,7 @@ import {
 
 const userId = "ITU2VHecgzOmw7fftiXq3oH8RzK9zRXg";
 const categoryId = "cmhorgpet000334ucyllo6vhh";
+const accountId = "cmhorgpet000234ucpgpk6k78";
 
 describe("Transaction repository", async () => {
 	it("Should create a transaction", async () => {
@@ -23,6 +24,7 @@ describe("Transaction repository", async () => {
 				amount: 205.65,
 				description: "Created a website from a client on upwork",
 				categoryId,
+				accountId,
 			},
 			testDb.prisma,
 		);

@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client/extension";
-import type { TransactionType } from "@/generated/prisma/enums.js";
+import { AccountType, type TransactionType } from "@/generated/prisma/enums.js";
 
 export async function seed(prisma: PrismaClient) {
 	console.log("Seeding test data...");
@@ -26,6 +26,44 @@ export async function seed(prisma: PrismaClient) {
 			id: "jDDQKhn3JOhvXqJwZZXXq9vfxWWnDsGZ",
 		},
 	});
+
+	const financialAccounts = [
+		{
+			id: "cmhorgpet000034ucpgfadrkj",
+			name: "KCB Account",
+			type: AccountType.BANK,
+			userId: user.id,
+			balance: 19500,
+		},
+		{
+			id: "cmhorgpet000134uc0y6x2phj",
+			name: "Mpesa",
+			type: AccountType.MOBILE_MONEY,
+			userId: user.id,
+			balance: 14500,
+		},
+		{
+			id: "cmhorgpet000234ucpgpk6k78",
+			name: "Stanchart Savings Account",
+			balance: 6850,
+			type: AccountType.SAVINGS,
+			userId: user.id,
+		},
+		{
+			id: "cmhorgpet000334ucyllo6vhh",
+			name: "Paypal",
+			balance: 550,
+			type: AccountType.WALLET,
+			userId: user.id,
+			currency: "USD",
+		},
+	];
+
+	for (const acc of financialAccounts) {
+		await prisma.financialAccount.create({
+			data: acc,
+		});
+	}
 
 	const categories = [
 		{
@@ -59,16 +97,8 @@ export async function seed(prisma: PrismaClient) {
 	];
 
 	for (const category of categories) {
-		await prisma.category.upsert({
-			where: {
-				userId_name_type: {
-					userId: category.userId,
-					name: category.name,
-					type: category.type as TransactionType,
-				},
-			},
-			update: {},
-			create: category,
+		await prisma.category.create({
+			data: category,
 		});
 	}
 
@@ -81,6 +111,7 @@ export async function seed(prisma: PrismaClient) {
 				date: new Date("2025-09-30"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
 				userId: user.id,
+				accountId: "cmhorgpet000034ucpgfadrkj",
 			},
 			{
 				id: "cmhpyr3lo0000341rkyxfllsy",
@@ -89,6 +120,7 @@ export async function seed(prisma: PrismaClient) {
 				date: new Date("2025-10-01"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
 				userId: user.id,
+				accountId: "cmhorgpet000034ucpgfadrkj",
 			},
 			{
 				id: "cmhpyr3lo0001341rlkdftg1g",
@@ -97,6 +129,7 @@ export async function seed(prisma: PrismaClient) {
 				date: new Date("2025-10-01"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
 				userId: user.id,
+				accountId: "cmhorgpet000034ucpgfadrkj",
 			},
 			{
 				id: "cmhpyr3lo0002341riaz080ct",
@@ -105,6 +138,7 @@ export async function seed(prisma: PrismaClient) {
 				date: new Date("2025-10-01"),
 				categoryId: "cmhorgpet000034ucpgfadrkj",
 				userId: user.id,
+				accountId: "cmhorgpet000134uc0y6x2phj",
 			},
 			{
 				id: "cmhpyr3lo0003341rp9nvtr9y",
@@ -113,6 +147,7 @@ export async function seed(prisma: PrismaClient) {
 				amount: 65000,
 				date: new Date("2025-10-01"),
 				description: "Salary for period ending 30th September 2025",
+				accountId: "cmhorgpet000034ucpgfadrkj",
 			},
 			{
 				id: "cmhpyr3lo0004341rys4guiql",
@@ -121,6 +156,7 @@ export async function seed(prisma: PrismaClient) {
 				userId: user.id,
 				description: "Rent & Bills for period starting 1st October 2025",
 				amount: 6500.0,
+				accountId: "cmhorgpet000134uc0y6x2phj",
 			},
 		],
 	});
@@ -131,7 +167,6 @@ export async function seed(prisma: PrismaClient) {
 			targetAmount: 3525.65,
 			name: "Holiday to Seychelles",
 			deadline: new Date("2025-12-25"),
-			currentAmount: 1555.0,
 			isActive: true,
 			icon: "beach",
 			userId: user.id,
@@ -143,7 +178,6 @@ export async function seed(prisma: PrismaClient) {
 			name: "Education Fund",
 			deadline: new Date("2026-01-15"),
 			icon: "university",
-			currentAmount: 2256,
 			isActive: true,
 			userId: user.id,
 		},
@@ -166,7 +200,6 @@ export async function seed(prisma: PrismaClient) {
 				icon: goal.icon,
 				deadline: goal.deadline,
 				isActive: goal.isActive,
-				currentAmount: goal.currentAmount,
 				targetAmount: goal.targetAmount,
 				user: {
 					connect: {

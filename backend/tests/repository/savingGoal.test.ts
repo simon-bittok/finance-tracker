@@ -4,11 +4,11 @@ import {
 	getAllSavingGoals,
 	getSavingGoalById,
 	updateSavingGoal,
-} from "@repository/saving-goals.repository.js";
+} from "@repository/savingGoals.repository.js";
 import { testDb } from "@tests/setup.js";
 import { Decimal } from "decimal.js";
 import { describe, expect, it } from "vitest";
-import type { UpdateSavingGoalInputs } from "@/types/savingGoals.js";
+import type { UpdateSavingGoalInputs } from "@/types/savingGoals.types.js";
 
 const userId = "ITU2VHecgzOmw7fftiXq3oH8RzK9zRXg";
 const id = "cmi1oxut4000124xotpi39uhj";

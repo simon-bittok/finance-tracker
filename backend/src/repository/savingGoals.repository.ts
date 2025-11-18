@@ -1,4 +1,3 @@
-import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
@@ -6,6 +5,7 @@ import type {
 	GoalContributionInput,
 	UpdateSavingGoalInputs,
 } from "@/types/savingGoals.types.js";
+import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 
 export async function getAllSavingGoals(
 	userId: string,
@@ -54,7 +54,6 @@ export async function createSavingGoal(
 				deadline,
 				name,
 				icon,
-				currentAmount: 0,
 				isActive: true,
 			},
 		});
@@ -150,30 +149,56 @@ export async function addGoalContribution(
 	params: GoalContributionInput,
 	prisma: PrismaClient = defaultPrisma,
 ) {
-	const { goalId, amount, transactionId, note } = params;
+	const { goalId, amount, transactionId, transferId, note } = params;
 	return await prisma.$transaction(async (tx) => {
+		const savingGoal = await tx.savingGoal.findUnique({
+			where: {
+				userId,
+				id: goalId,
+			},
+		});
+
+		if (!savingGoal) {
+			throw new HTTPException(403, {
+				message: "Create the SavingGoal first before adding contributions",
+			});
+		}
+
+		// If transactionId provided, verify it exists and belongs to user
+		if (transactionId) {
+			const transaction = await tx.transaction.findFirst({
+				where: { id: transactionId, userId },
+			});
+			if (!transaction) {
+				throw new HTTPException(403, {
+					message: "Transaction not found or unauthorized",
+				});
+			}
+		}
+
+		// If transferId provided, verify it exists and belongs to user
+		if (transferId) {
+			const transfer = await tx.transfer.findFirst({
+				where: { id: transferId, userId },
+			});
+			if (!transfer) {
+				throw new HTTPException(403, {
+					message: "Transfer not found or unauthorized",
+				});
+			}
+		}
+
 		const contribution = await tx.goalContribution.create({
 			data: {
 				goalId,
 				note,
 				amount,
 				transactionId,
+				transferId,
 			},
 		});
 
-		const savingGoal = await tx.savingGoal.update({
-			where: {
-				id: goalId,
-				userId,
-			},
-			data: {
-				currentAmount: {
-					increment: amount,
-				},
-			},
-		});
-
-		return { contribution, savingGoal };
+		return contribution;
 	});
 }
 
