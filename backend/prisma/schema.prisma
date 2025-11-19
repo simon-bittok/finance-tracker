@@ -122,7 +122,7 @@ model FinancialAccount {
   metadata  Json? // Store provider specific data
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
-  deletedAt DateTime?
+  deletedAt DateTime? // No hard deletes here
 
   user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   transactions  Transaction[]

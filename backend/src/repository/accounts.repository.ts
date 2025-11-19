@@ -1,4 +1,5 @@
 // Database access code for `FinancialAccount` model
+/** biome-ignore-all lint/suspicious/noExplicitAny: The value for the metadata can be any JS type or more */
 
 import { prisma as defaultPrisma } from "@utils/prisma.utils.js";
 import { HTTPException } from "hono/http-exception";
@@ -83,6 +84,8 @@ export async function updateFinancialAccount(
       }
     }
 
+    const currentMetadata = existing.metadata as Record<string, any>;
+
     return tx.financialAccount.update({
       where: {
         id: existing.id,
@@ -91,9 +94,29 @@ export async function updateFinancialAccount(
         ...(name && { name }),
         ...(type && { type }),
         ...(currency && { currency }),
-        ...(metadata && { metadata }),
+        ...(metadata && {
+          metadata: {
+            ...currentMetadata,
+            ...metadata,
+          },
+        }),
       },
     });
+  });
+}
+
+export async function getAllActiveFinancialAccounts(
+  userId: string,
+  prisma: PrismaClient = defaultPrisma,
+) {
+  return await prisma.financialAccount.findMany({
+    where: {
+      userId,
+      deletedAt: null,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 }
 
@@ -104,6 +127,40 @@ export async function getAllFinancialAccounts(
   return await prisma.financialAccount.findMany({
     where: {
       userId,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function getAllInactiveFinancialAccounts(
+  userId: string,
+  prisma: PrismaClient = defaultPrisma,
+) {
+  return await prisma.financialAccount.findMany({
+    where: {
+      userId,
+      deletedAt: { not: null },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+export async function restoreFinancialAccountById(
+  id: string,
+  userId: string,
+  prisma: PrismaClient = defaultPrisma,
+) {
+  return await prisma.financialAccount.update({
+    where: {
+      id,
+      userId,
+    },
+    data: {
+      deletedAt: null,
     },
   });
 }
@@ -127,9 +184,62 @@ export async function getFinancialAccountById(
   return account;
 }
 
+export async function deleteFinancialAccountById(
+  id: string,
+  userId: string,
+  prisma: PrismaClient = defaultPrisma,
+) {
+  return prisma.$transaction(async (tx) => {
+    const account = await tx.financialAccount.findFirst({
+      where: {
+        userId,
+        id,
+      },
+    });
+
+    if (!account) {
+      throw new HTTPException(403, {
+        message:
+          "Account not found or You do not have permission to perform this action",
+      });
+    }
+
+    return await tx.financialAccount.update({
+      where: {
+        id: account.id,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+  });
+}
+
 export type CreateFinancialAccount = Awaited<
   ReturnType<typeof createFinancialAccount>
 >;
 export type UpdateFinancialAccount = Awaited<
   ReturnType<typeof updateFinancialAccount>
+>;
+export type DeleteFinancialAccount = Awaited<
+  ReturnType<typeof deleteFinancialAccountById>
+>;
+export type GetAllFinancialAccounts = Awaited<
+  ReturnType<typeof getAllFinancialAccounts>
+>;
+
+export type GetFinancialAccountById = Awaited<
+  ReturnType<typeof getFinancialAccountById>
+>;
+
+export type RestoreFinancialAccountById = Awaited<
+  ReturnType<typeof restoreFinancialAccountById>
+>;
+
+export type GetAllActiveFinancialAccounts = Awaited<
+  ReturnType<typeof getAllActiveFinancialAccounts>
+>;
+
+export type GetAllDeletedFinancialAccounts = Awaited<
+  ReturnType<typeof getAllInactiveFinancialAccounts>
 >;

@@ -2,7 +2,8 @@ import { testDb } from "@tests/setup.js";
 import { describe, expect, it } from "vitest";
 import {
   createFinancialAccount,
-  getAllFinancialAccounts,
+  deleteFinancialAccountById,
+  getAllActiveFinancialAccounts,
   getFinancialAccountById,
   updateFinancialAccount,
 } from "@/repository/accounts.repository.js";
@@ -61,7 +62,7 @@ describe("Financial Account Repository", async () => {
   });
 
   it("Should get all of a user's accounts", async () => {
-    const accounts = await getAllFinancialAccounts(userId, testDb.prisma);
+    const accounts = await getAllActiveFinancialAccounts(userId, testDb.prisma);
 
     expect(accounts.length).toBe(4);
   });
@@ -73,8 +74,16 @@ describe("Financial Account Repository", async () => {
       testDb.prisma,
     );
 
-    console.log(account);
-
     expect(account.name).toBe("Mpesa");
+  });
+
+  it("Should contain time deletd when an account is deleted ", async () => {
+    const account = await deleteFinancialAccountById(
+      accountId,
+      userId,
+      testDb.prisma,
+    );
+
+    expect(account.deletedAt).toBeDefined();
   });
 });
