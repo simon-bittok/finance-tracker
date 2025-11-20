@@ -4,6 +4,7 @@ import ValidationError from "@/errors/validation.error.js";
 import { requireAuth } from "@/middlewares/auth.middleware.js";
 import * as accountRepository from "@/repository/accounts.repository.js";
 import {
+  type AccountQuery,
   createAccountSchema,
   updateAccountSchema,
 } from "@/types/accounts.types.js";
@@ -16,8 +17,11 @@ const app = new Hono<{ Bindings: AuthType }>({
 
 app.get("/", requireAuth, async (c) => {
   const userId = c.get("userId");
-  const accounts = await accountRepository.getAllActiveFinancialAccounts(
+  const { type, isActive, currency } = c.req.query() as AccountQuery;
+
+  const accounts = await accountRepository.getAllFinancialAccounts(
     userId,
+    { type, isActive, currency },
     prisma,
   );
 

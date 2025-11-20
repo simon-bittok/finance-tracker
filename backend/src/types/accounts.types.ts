@@ -1,5 +1,4 @@
 import z from "zod";
-import { AccountType } from "@/generated/prisma/enums.js";
 
 // Examples of metadata based on AccountType
 //
@@ -48,13 +47,24 @@ import { AccountType } from "@/generated/prisma/enums.js";
 //     "frequency": "monthly"
 //   }
 //}
+//
+export const FinAccountType = [
+  "BANK",
+  "CASH",
+  "CREDIT",
+  "MOBILE_MONEY",
+  "SAVINGS",
+  "WALLET",
+] as const;
+
+export type FinAccountType = (typeof FinAccountType)[number];
 
 export const createAccountSchema = z.object({
   name: z
     .string()
     .min(3, "Name requires 3 characters")
     .max(255, "Name must be under 255 characters"),
-  type: z.enum(AccountType),
+  type: z.enum(FinAccountType),
   balance: z.coerce
     .number()
     .nonnegative("Balance cannot be negative")
@@ -71,9 +81,15 @@ export const updateAccountSchema = z.object({
     .min(3, "Name requires 3 characters")
     .max(255, "Name must be under 255 characters")
     .optional(),
-  type: z.enum(AccountType).optional(),
+  type: z.enum(FinAccountType).optional(),
   currency: z.string().length(3).optional(),
   metadata: z.record(z.any(), z.any()).optional(),
 });
 
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
+
+export type AccountQuery = {
+  isActive?: boolean;
+  type?: FinAccountType;
+  currency?: string;
+};

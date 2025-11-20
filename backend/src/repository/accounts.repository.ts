@@ -3,8 +3,9 @@
 
 import { prisma as defaultPrisma } from "@utils/prisma.utils.js";
 import { HTTPException } from "hono/http-exception";
-import type { PrismaClient } from "@/generated/prisma/client.js";
+import type { AccountType, PrismaClient } from "@/generated/prisma/client.js";
 import type {
+  AccountQuery,
   CreateAccountInput,
   UpdateAccountInput,
 } from "@/types/accounts.types.js";
@@ -21,7 +22,7 @@ export async function createFinancialAccount(
       where: {
         userId,
         name,
-        type,
+        type: type as AccountType,
       },
     });
 
@@ -35,7 +36,7 @@ export async function createFinancialAccount(
       data: {
         userId,
         name,
-        type,
+        type: type as AccountType,
         metadata,
         balance: balance ?? 0,
         currency: currency ?? "KES",
@@ -72,7 +73,7 @@ export async function updateFinancialAccount(
         where: {
           userId,
           name,
-          type: type ?? existing.type,
+          type: (type as AccountType) ?? existing.type,
           id: { not: id },
         },
       });
@@ -92,7 +93,7 @@ export async function updateFinancialAccount(
       },
       data: {
         ...(name && { name }),
-        ...(type && { type }),
+        ...(type && { type: type as AccountType }),
         ...(currency && { currency }),
         ...(metadata && {
           metadata: {
@@ -122,12 +123,19 @@ export async function getAllActiveFinancialAccounts(
 
 export async function getAllFinancialAccounts(
   userId: string,
+  query: AccountQuery,
   prisma: PrismaClient = defaultPrisma,
 ) {
+  const { isActive, type, currency } = query;
+
   return await prisma.financialAccount.findMany({
     where: {
       userId,
+      ...(isActive && { deletedAt: isActive ? null : { not: null } }),
+      ...(type && { type: type as AccountType }),
+      ...(currency && { currency }),
     },
+
     orderBy: {
       createdAt: "desc",
     },
