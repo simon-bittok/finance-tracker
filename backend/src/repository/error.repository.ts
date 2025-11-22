@@ -47,3 +47,13 @@ export class CurrencyMistmatchError extends DatabaseError {
 		this.code = 400;
 	}
 }
+
+export class EntityAlreadyExists extends DatabaseError {
+	constructor(
+		public entityName: string,
+		constraint: string,
+	) {
+		super(`${entityName} with this ${constraint} already exists`);
+		this.code = 409;
+	}
+}
