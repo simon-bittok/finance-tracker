@@ -1,4 +1,3 @@
-import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
 	CreateSavingGoalInputs,
@@ -6,6 +5,7 @@ import type {
 	UpdateSavingGoalInputs,
 } from "@/types/savingGoals.types.js";
 import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
+import { EntityAlreadyExists, EntityNotFound } from "./error.repository.js";
 
 export async function getAllSavingGoals(
 	userId: string,
@@ -44,7 +44,10 @@ export async function createSavingGoal(
 		});
 
 		if (exists) {
-			throw new HTTPException(409, { message: "Saving goal already exists" });
+			throw new EntityAlreadyExists(
+				"Saving Goal",
+				"name, targetAmount, & deadline",
+			);
 		}
 
 		return await tx.savingGoal.create({
@@ -77,9 +80,7 @@ export async function updateSavingGoal(
 		});
 
 		if (!exists) {
-			throw new HTTPException(422, {
-				message: "Cannot update non existent Saving Goal",
-			});
+			throw new EntityNotFound("Saving Goal", id);
 		}
 
 		return await tx.savingGoal.update({
@@ -130,9 +131,7 @@ export async function deleteSavingGoal(
 		});
 
 		if (!goal) {
-			throw new HTTPException(403, {
-				message: "Forbidden",
-			});
+			throw new EntityNotFound("SavingGoal", id);
 		}
 
 		return await txn.savingGoal.delete({
@@ -159,9 +158,7 @@ export async function addGoalContribution(
 		});
 
 		if (!savingGoal) {
-			throw new HTTPException(403, {
-				message: "Create the SavingGoal first before adding contributions",
-			});
+			throw new EntityNotFound("SavingGoal", goalId);
 		}
 
 		// If transactionId provided, verify it exists and belongs to user
@@ -170,9 +167,7 @@ export async function addGoalContribution(
 				where: { id: transactionId, userId },
 			});
 			if (!transaction) {
-				throw new HTTPException(403, {
-					message: "Transaction not found or unauthorized",
-				});
+				throw new EntityNotFound("Goal Contribution", transactionId);
 			}
 		}
 
@@ -182,9 +177,7 @@ export async function addGoalContribution(
 				where: { id: transferId, userId },
 			});
 			if (!transfer) {
-				throw new HTTPException(403, {
-					message: "Transfer not found or unauthorized",
-				});
+				throw new EntityNotFound("Transfer", transferId);
 			}
 		}
 

@@ -1,191 +1,183 @@
-import { HTTPException } from "hono/http-exception";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
-  CreateTransactionInputs,
-  TransactionQuery,
-  UpdateTransactionInputs,
+	CreateTransactionInputs,
+	TransactionQuery,
+	UpdateTransactionInputs,
 } from "@/types/transactions.types.js";
 import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
+import { EntityNotFound } from "./error.repository.js";
 
 export async function createTransaction(
-  userId: string,
-  params: CreateTransactionInputs,
-  prisma: PrismaClient = defaultPrisma,
+	userId: string,
+	params: CreateTransactionInputs,
+	prisma: PrismaClient = defaultPrisma,
 ) {
-  const { amount, accountId, categoryId, description, date } = params;
+	const { amount, accountId, categoryId, description, date } = params;
 
-  const category = await prisma.category.findFirst({
-    where: {
-      userId,
-      id: categoryId,
-    },
-  });
+	const category = await prisma.category.findFirst({
+		where: {
+			userId,
+			id: categoryId,
+		},
+	});
 
-  if (!category) {
-    throw new HTTPException(404, {
-      message: "Category not found",
-    });
-  }
+	if (!category) {
+		throw new EntityNotFound("Category", params.categoryId);
+	}
 
-  return await prisma.transaction.create({
-    data: {
-      userId,
-      accountId,
-      amount,
-      categoryId: category.id,
-      description: description ?? "",
-      date: date,
-    },
-  });
+	return await prisma.transaction.create({
+		data: {
+			userId,
+			accountId,
+			amount,
+			categoryId: category.id,
+			description: description ?? "",
+			date: date,
+		},
+	});
 }
 
 export async function getAllTransactions(
-  userId: string,
-  query: TransactionQuery,
-  prisma: PrismaClient = defaultPrisma,
+	userId: string,
+	query: TransactionQuery,
+	prisma: PrismaClient = defaultPrisma,
 ) {
-  const { from, to, type } = query;
+	const { from, to, type } = query;
 
-  return await prisma.transaction.findMany({
-    where: {
-      userId,
-      date: {
-        gte: from,
-        lte: to,
-      },
-      ...(type && { category: { type } }),
-    },
-    include: {
-      category: true,
-    },
-    orderBy: {
-      date: "desc",
-    },
-  });
+	return await prisma.transaction.findMany({
+		where: {
+			userId,
+			date: {
+				gte: from,
+				lte: to,
+			},
+			...(type && { category: { type } }),
+		},
+		include: {
+			category: true,
+		},
+		orderBy: {
+			date: "desc",
+		},
+	});
 }
 
 export async function getTransactionById(
-  id: string,
-  userId: string,
-  prisma: PrismaClient = defaultPrisma,
+	id: string,
+	userId: string,
+	prisma: PrismaClient = defaultPrisma,
 ) {
-  return await prisma.transaction.findUnique({
-    where: {
-      userId,
-      id,
-    },
-    include: {
-      category: true,
-    },
-  });
+	return await prisma.transaction.findUnique({
+		where: {
+			userId,
+			id,
+		},
+		include: {
+			category: true,
+		},
+	});
 }
 
 export async function deleteTransactionById(
-  id: string,
-  userId: string,
-  prisma: PrismaClient = defaultPrisma,
+	id: string,
+	userId: string,
+	prisma: PrismaClient = defaultPrisma,
 ) {
-  return prisma.$transaction(async (tx) => {
-    const transaction = await tx.transaction.findUnique({
-      where: {
-        userId,
-        id,
-      },
-    });
+	return prisma.$transaction(async (tx) => {
+		const transaction = await tx.transaction.findUnique({
+			where: {
+				userId,
+				id,
+			},
+		});
 
-    if (!transaction) {
-      throw new HTTPException(404, { message: "Transaction not found" });
-    }
+		if (!transaction) {
+			throw new EntityNotFound("Transaction", id);
+		}
 
-    return tx.transaction.delete({
-      where: {
-        id,
-        userId,
-      },
-    });
-  });
+		return tx.transaction.delete({
+			where: {
+				id,
+				userId,
+			},
+		});
+	});
 }
 
 export async function updateTransactionById(
-  id: string,
-  userId: string,
-  params: UpdateTransactionInputs,
-  prisma: PrismaClient = defaultPrisma,
+	id: string,
+	userId: string,
+	params: UpdateTransactionInputs,
+	prisma: PrismaClient = defaultPrisma,
 ) {
-  return await prisma.$transaction(async (tx) => {
-    const existingTransaction = await tx.transaction.findFirst({
-      where: {
-        id,
-        userId,
-      },
-    });
+	return await prisma.$transaction(async (tx) => {
+		const existingTransaction = await tx.transaction.findFirst({
+			where: {
+				id,
+				userId,
+			},
+		});
 
-    if (!existingTransaction) {
-      throw new HTTPException(404, {
-        message: "Transaction not found",
-      });
-    }
+		if (!existingTransaction) {
+			throw new EntityNotFound("Transaction", id);
+		}
 
-    let categoryId: string | null = null;
+		let categoryId: string | null = null;
 
-    if (params.categoryId) {
-      const category = await tx.category.findFirst({
-        where: {
-          id: params.categoryId,
-          userId,
-        },
-      });
+		if (params.categoryId) {
+			const category = await tx.category.findFirst({
+				where: {
+					id: params.categoryId,
+					userId,
+				},
+			});
 
-      if (!category) {
-        throw new HTTPException(404, {
-          message: "Category not found",
-        });
-      }
+			if (!category) {
+				throw new EntityNotFound("Category", params.categoryId);
+			}
 
-      categoryId = category.id;
-    }
+			categoryId = category.id;
+		}
 
-    let accountId: string | null = null;
+		let accountId: string | null = null;
 
-    if (params.accountId) {
-      const account = await tx.financialAccount.findFirst({
-        where: {
-          id: params.accountId,
-          userId,
-        },
-      });
+		if (params.accountId) {
+			const account = await tx.financialAccount.findFirst({
+				where: {
+					id: params.accountId,
+					userId,
+				},
+			});
 
-      if (!account) {
-        throw new HTTPException(404, {
-          message: "Financial Account not found",
-        });
-      }
+			if (!account) {
+				throw new EntityNotFound("Account", params.accountId);
+			}
 
-      accountId = account.id;
-    }
+			accountId = account.id;
+		}
 
-    return await tx.transaction.update({
-      where: {
-        userId,
-        id,
-      },
-      data: {
-        amount: params.amount ?? existingTransaction.amount,
-        categoryId: categoryId ?? existingTransaction.categoryId,
-        date: params.date ?? existingTransaction.date,
-        description: params.description ?? existingTransaction.description,
-        accountId: accountId ?? existingTransaction.accountId,
-      },
-    });
-  });
+		return await tx.transaction.update({
+			where: {
+				userId,
+				id,
+			},
+			data: {
+				amount: params.amount ?? existingTransaction.amount,
+				categoryId: categoryId ?? existingTransaction.categoryId,
+				date: params.date ?? existingTransaction.date,
+				description: params.description ?? existingTransaction.description,
+				accountId: accountId ?? existingTransaction.accountId,
+			},
+		});
+	});
 }
 
 export type CreateTransaction = Awaited<ReturnType<typeof createTransaction>>;
 export type GetAllTransactions = Awaited<ReturnType<typeof getAllTransactions>>;
 export type GetTransactionById = Awaited<ReturnType<typeof getTransactionById>>;
 export type DeleteTransaction = Awaited<
-  ReturnType<typeof deleteTransactionById>
+	ReturnType<typeof deleteTransactionById>
 >;
 export type UpdateTransaction = Awaited<
-  ReturnType<typeof updateTransactionById>
+	ReturnType<typeof updateTransactionById>
 >;
