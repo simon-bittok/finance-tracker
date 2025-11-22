@@ -210,6 +210,50 @@ export async function seed(prisma: PrismaClient) {
 		});
 	}
 
+	const transfers = [
+		{
+			id: "020481e0-ade9-4a03-b898-b714f14af72e",
+			fromAccountId: "cmhorgpet000034ucpgfadrkj",
+			toAccountId: "cmhorgpet000134uc0y6x2phj",
+			amount: 655,
+			userId: user.id,
+		},
+		{
+			id: "b7f50fda-7323-4077-9b64-7547b6b06cb8",
+			fromAccountId: "cmhorgpet000234ucpgpk6k78",
+			toAccountId: "cmhorgpet000034ucpgfadrkj",
+			amount: 961,
+			userId: user.id,
+		},
+		{
+			id: "9180fc10-0018-4396-9b8a-948821c94d9a",
+			fromAccountId: "cmhorgpet000034ucpgfadrkj",
+			toAccountId: "cmhorgpet000234ucpgpk6k78",
+			amount: 784,
+			userId: user.id,
+		},
+		{
+			id: "83d87a2a-b451-4bed-b51d-f542052fde44",
+			fromAccountId: "cmhorgpet000134uc0y6x2phj",
+			toAccountId: "cmhorgpet000234ucpgpk6k78",
+			amount: 369,
+			userId: user.id,
+		},
+		{
+			id: "b15201df-82d4-45b6-9186-30acde65b884",
+			fromAccountId: "cmhorgpet000134uc0y6x2phj",
+			toAccountId: "cmhorgpet000034ucpgfadrkj",
+			amount: 478,
+			userId: user.id,
+		},
+	];
+
+	for (const transfer of transfers) {
+		await prisma.transfer.create({
+			data: transfer,
+		});
+	}
+
 	console.log("Seeding completed");
 }
 
