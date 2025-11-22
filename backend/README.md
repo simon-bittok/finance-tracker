@@ -2,24 +2,20 @@
 
 ## Intro
 
-Finance Tracker is a web application that allows users to track their expenses and income.
+The back-end allows users to track their expenses and incomes.
 Set their saving goals and budgeting plans.
 Transfer money between their Accounts i.e From Bank to Cash.
 The back-end is built using `Node.js`, `Hono`, `Prisma`, `Better Auth`, and `SQLite`.
 
 ## Tech Stack
 
-### Back-end
+This back-end API is built using:
 
 - `Node.js`
-- `Hono
+- `Hono`
 - `Prisma`
 - `Better Auth`
 - `SQLite`
-
-### Front-end
-
-TBD
 
 ```sh
 pnpm install
