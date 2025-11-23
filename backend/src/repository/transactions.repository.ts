@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
 	CreateTransactionInputs,
@@ -6,7 +7,7 @@ import type {
 } from "@/types/transactions.types.js";
 import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 import { EntityNotFound } from "./error.repository.js";
-import { subDays } from "date-fns";
+import { Decimal } from "decimal.js";
 
 export async function createTransaction(
 	userId: string,
@@ -15,26 +16,52 @@ export async function createTransaction(
 ) {
 	const { amount, accountId, categoryId, description, date } = params;
 
-	const category = await prisma.category.findFirst({
-		where: {
-			userId,
-			id: categoryId,
-		},
-	});
+	return await prisma.$transaction(async (tx) => {
+		const [category, account] = await Promise.all([
+			tx.category.findFirst({
+				where: {
+					userId,
+					id: categoryId,
+				},
+			}),
+			tx.financialAccount.findUnique({
+				where: {
+					userId,
+					id: accountId,
+				},
+			}),
+		]);
 
-	if (!category) {
-		throw new EntityNotFound("Category", params.categoryId);
-	}
+		if (!category) {
+			throw new EntityNotFound("Category", params.categoryId);
+		}
 
-	return await prisma.transaction.create({
-		data: {
-			userId,
-			accountId,
-			amount,
-			categoryId: category.id,
-			description: description ?? "",
-			date: date,
-		},
+		if (!account) {
+			throw new EntityNotFound("Account", params.accountId);
+		}
+
+		await tx.financialAccount.update({
+			where: {
+				id: account?.id,
+			},
+			data: {
+				balance:
+					category.type === "INCOME"
+						? account.balance.add(amount)
+						: account.balance.sub(amount),
+			},
+		});
+
+		return await tx.transaction.create({
+			data: {
+				userId,
+				accountId,
+				amount,
+				categoryId: category.id,
+				description: description ?? "",
+				date: date,
+			},
+		});
 	});
 }
 
@@ -79,6 +106,7 @@ export async function getTransactionById(
 	});
 }
 
+// Transactions should not be deleteable
 export async function deleteTransactionById(
 	id: string,
 	userId: string,
@@ -96,10 +124,13 @@ export async function deleteTransactionById(
 			throw new EntityNotFound("Transaction", id);
 		}
 
-		return tx.transaction.delete({
+		return tx.transaction.update({
 			where: {
 				id,
 				userId,
+			},
+			data: {
+				deletedAt: new Date(),
 			},
 		});
 	});
@@ -117,15 +148,22 @@ export async function updateTransactionById(
 				id,
 				userId,
 			},
+			include: {
+				category: true,
+				financialAccount: true,
+			},
 		});
 
 		if (!existingTransaction) {
 			throw new EntityNotFound("Transaction", id);
 		}
 
-		let categoryId: string | null = null;
+		let newCategory = existingTransaction.category;
 
-		if (params.categoryId) {
+		if (
+			params.categoryId &&
+			params.categoryId !== existingTransaction.categoryId
+		) {
 			const category = await tx.category.findFirst({
 				where: {
 					id: params.categoryId,
@@ -137,12 +175,15 @@ export async function updateTransactionById(
 				throw new EntityNotFound("Category", params.categoryId);
 			}
 
-			categoryId = category.id;
+			newCategory = category;
 		}
 
-		let accountId: string | null = null;
+		let newAccount = existingTransaction.financialAccount;
 
-		if (params.accountId) {
+		if (
+			params.accountId &&
+			params.accountId !== existingTransaction.accountId
+		) {
 			const account = await tx.financialAccount.findFirst({
 				where: {
 					id: params.accountId,
@@ -154,7 +195,53 @@ export async function updateTransactionById(
 				throw new EntityNotFound("Account", params.accountId);
 			}
 
-			accountId = account.id;
+			newAccount = account;
+		}
+
+		const newAmount = params.amount
+			? new Decimal(params.amount)
+			: existingTransaction.amount;
+		const oldAmount = existingTransaction.amount;
+
+		const amountChanged = !newAmount.equals(oldAmount);
+		const categoryChanged = newCategory.id !== existingTransaction.categoryId;
+		const accountChanged = newAccount.id !== existingTransaction.accountId;
+
+		if (amountChanged || categoryChanged || accountChanged) {
+			// Step 1: Reverse the old transaction's effect on old account
+			// This brings the account back to its state before the transaction
+
+			const existingEffect =
+				existingTransaction.category.type === "INCOME"
+					? oldAmount.neg() // Remove the income
+					: oldAmount; // Add the expense back
+
+			await tx.financialAccount.update({
+				where: {
+					id: existingTransaction.accountId,
+				},
+				data: {
+					balance:
+						existingTransaction.financialAccount.balance.add(existingEffect),
+				},
+			});
+
+			const newEffect =
+				newCategory.type === "INCOME" ? newAmount : newAmount.neg();
+
+			await tx.financialAccount.update({
+				where: {
+					id: newAccount.id,
+				},
+				data: {
+					balance:
+						newAccount.id === existingTransaction.accountId
+							? existingTransaction.financialAccount.balance
+									.add(existingEffect)
+									.add(newEffect)
+							: newAccount.balance.add(newEffect),
+				},
+			});
 		}
 
 		return await tx.transaction.update({
@@ -163,11 +250,11 @@ export async function updateTransactionById(
 				id,
 			},
 			data: {
-				amount: params.amount ?? existingTransaction.amount,
-				categoryId: categoryId ?? existingTransaction.categoryId,
+				amount: newAmount,
+				categoryId: newCategory.id,
 				date: params.date ?? existingTransaction.date,
 				description: params.description ?? existingTransaction.description,
-				accountId: accountId ?? existingTransaction.accountId,
+				accountId: newAccount.id,
 			},
 		});
 	});
