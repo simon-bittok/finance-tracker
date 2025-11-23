@@ -1,3 +1,4 @@
+import type Decimal from "decimal.js";
 import z from "zod";
 
 // Examples of metadata based on AccountType
@@ -49,47 +50,52 @@ import z from "zod";
 //}
 //
 export const FinAccountType = [
-  "BANK",
-  "CASH",
-  "CREDIT",
-  "MOBILE_MONEY",
-  "SAVINGS",
-  "WALLET",
+	"BANK",
+	"CASH",
+	"CREDIT",
+	"MOBILE_MONEY",
+	"SAVINGS",
+	"WALLET",
 ] as const;
 
 export type FinAccountType = (typeof FinAccountType)[number];
 
 export const createAccountSchema = z.object({
-  name: z
-    .string()
-    .min(3, "Name requires 3 characters")
-    .max(255, "Name must be under 255 characters"),
-  type: z.enum(FinAccountType),
-  balance: z.coerce
-    .number()
-    .nonnegative("Balance cannot be negative")
-    .optional(),
-  currency: z.string().length(3).optional(),
-  metadata: z.record(z.any(), z.any()).optional(),
+	name: z
+		.string()
+		.min(3, "Name requires 3 characters")
+		.max(255, "Name must be under 255 characters"),
+	type: z.enum(FinAccountType),
+	balance: z.coerce
+		.number()
+		.nonnegative("Balance cannot be negative")
+		.optional(),
+	currency: z.string().length(3).optional(),
+	metadata: z.record(z.any(), z.any()).optional(),
 });
 
 export type CreateAccountInput = z.infer<typeof createAccountSchema>;
 
 export const updateAccountSchema = z.object({
-  name: z
-    .string()
-    .min(3, "Name requires 3 characters")
-    .max(255, "Name must be under 255 characters")
-    .optional(),
-  type: z.enum(FinAccountType).optional(),
-  currency: z.string().length(3).optional(),
-  metadata: z.record(z.any(), z.any()).optional(),
+	name: z
+		.string()
+		.min(3, "Name requires 3 characters")
+		.max(255, "Name must be under 255 characters")
+		.optional(),
+	type: z.enum(FinAccountType).optional(),
+	currency: z.string().length(3).optional(),
+	metadata: z.record(z.any(), z.any()).optional(),
 });
 
 export type UpdateAccountInput = z.infer<typeof updateAccountSchema>;
 
 export type AccountQuery = {
-  isActive?: boolean;
-  type?: FinAccountType;
-  currency?: string;
+	isActive?: boolean;
+	type?: FinAccountType;
+	currency?: string;
+};
+
+export type AccountBalanceType = {
+	balance: Decimal.Decimal | null;
+	currency: string;
 };

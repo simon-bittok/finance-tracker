@@ -4,6 +4,7 @@
 import { prisma as defaultPrisma } from "@utils/prisma.utils.js";
 import type { AccountType, PrismaClient } from "@/generated/prisma/client.js";
 import type {
+	AccountBalanceType,
 	AccountQuery,
 	CreateAccountInput,
 	UpdateAccountInput,
@@ -186,6 +187,35 @@ export async function getFinancialAccountById(
 	return account;
 }
 
+export async function getAllAcountBalance(
+	userId: string,
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const balance = await prisma.financialAccount.groupBy({
+		where: {
+			userId,
+		},
+		by: ["currency"],
+		_sum: {
+			balance: true,
+		},
+	});
+
+	const balResults: AccountBalanceType[] = [];
+
+	if (balance.length > 0) {
+		for (const bal of balance) {
+			const balanceResult: AccountBalanceType = {
+				currency: bal.currency,
+				balance: bal._sum.balance,
+			};
+			balResults.push(balanceResult);
+		}
+	}
+
+	return balResults;
+}
+
 export async function deleteFinancialAccountById(
 	id: string,
 	userId: string,
@@ -241,4 +271,8 @@ export type GetAllActiveFinancialAccounts = Awaited<
 
 export type GetAllDeletedFinancialAccounts = Awaited<
 	ReturnType<typeof getAllInactiveFinancialAccounts>
+>;
+
+export type GetAllAccountBalance = Awaited<
+	ReturnType<typeof getAllAcountBalance>
 >;

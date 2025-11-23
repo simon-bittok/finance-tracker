@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
 	createFinancialAccount,
 	deleteFinancialAccountById,
+	getAllAcountBalance,
 	getAllActiveFinancialAccounts,
 	getFinancialAccountById,
 	updateFinancialAccount,
@@ -38,6 +39,14 @@ describe("Financial Account Repository", async () => {
 
 		expect(created).toBeDefined();
 		expect(created.name).toBe("Checking Account");
+	});
+
+	it("Should sum account balance grouped by currency", async () => {
+		const balances = await getAllAcountBalance(userId, testDb.prisma);
+
+		console.log(balances);
+
+		expect(balances).toBeDefined();
 	});
 
 	it("Should update a financial account", async () => {
@@ -76,10 +85,12 @@ describe("Financial Account Repository", async () => {
 			testDb.prisma,
 		);
 
+		console.log(account);
+
 		expect(account.name).toBe("Mpesa");
 	});
 
-	it("Should contain time deletd when an account is deleted ", async () => {
+	it("Should contain time deleted when an account is deleted ", async () => {
 		const account = await deleteFinancialAccountById(
 			accountId,
 			userId,

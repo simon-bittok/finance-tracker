@@ -4,107 +4,119 @@ import ValidationError from "@/errors/validation.error.js";
 import { requireAuth } from "@/middlewares/auth.middleware.js";
 import * as accountRepository from "@/repository/accounts.repository.js";
 import {
-  type AccountQuery,
-  createAccountSchema,
-  updateAccountSchema,
+	type AccountQuery,
+	createAccountSchema,
+	updateAccountSchema,
 } from "@/types/accounts.types.js";
 import type { AuthType } from "@/utils/auth.utils.js";
 import { prisma } from "@/utils/prisma.utils.js";
 
 const app = new Hono<{ Bindings: AuthType }>({
-  strict: false,
+	strict: false,
 });
 
 app.get("/", requireAuth, async (c) => {
-  const userId = c.get("userId");
-  const { type, isActive, currency } = c.req.query() as AccountQuery;
+	const userId = c.get("userId");
+	const { type, isActive, currency } = c.req.query() as AccountQuery;
 
-  const accounts = await accountRepository.getAllFinancialAccounts(
-    userId,
-    { type, isActive, currency },
-    prisma,
-  );
+	const accounts = await accountRepository.getAllFinancialAccounts(
+		userId,
+		{ type, isActive, currency },
+		prisma,
+	);
 
-  return c.json({
-    metadata: {
-      total: accounts.length,
-    },
-    data: accounts,
-  });
+	return c.json({
+		metadata: {
+			total: accounts.length,
+		},
+		data: accounts,
+	});
 });
 
 app.post(
-  "/",
-  requireAuth,
-  zValidator("json", createAccountSchema, (result, _) => {
-    if (!result.success) {
-      throw new ValidationError(result.error.issues);
-    }
-  }),
-  async (c) => {
-    const userId = c.get("userId");
-    const params = c.req.valid("json");
-    const account = await accountRepository.createFinancialAccount(
-      userId,
-      params,
-      prisma,
-    );
+	"/",
+	requireAuth,
+	zValidator("json", createAccountSchema, (result, _) => {
+		if (!result.success) {
+			throw new ValidationError(result.error.issues);
+		}
+	}),
+	async (c) => {
+		const userId = c.get("userId");
+		const params = c.req.valid("json");
+		const account = await accountRepository.createFinancialAccount(
+			userId,
+			params,
+			prisma,
+		);
 
-    return c.json(account, 201);
-  },
+		return c.json(account, 201);
+	},
 );
 
+app.get("/balance", requireAuth, async (c) => {
+	const userId = c.get("userId");
+	const balances = await accountRepository.getAllAcountBalance(userId, prisma);
+
+	return c.json({
+		metadata: {
+			total: balances.length,
+		},
+		data: balances,
+	});
+});
+
 app.get("/:id", requireAuth, async (c) => {
-  const userId = c.get("userId");
-  const id = c.req.param("id");
+	const userId = c.get("userId");
+	const id = c.req.param("id");
 
-  const account = await accountRepository.getFinancialAccountById(
-    id,
-    userId,
-    prisma,
-  );
+	const account = await accountRepository.getFinancialAccountById(
+		id,
+		userId,
+		prisma,
+	);
 
-  return c.json(account);
+	return c.json(account);
 });
 
 app.patch(
-  "/:id",
-  requireAuth,
-  zValidator("json", updateAccountSchema, (result, _) => {
-    if (!result.success) {
-      throw new ValidationError(result.error.issues);
-    }
-  }),
-  async (c) => {
-    const userId = c.get("userId");
-    const id = c.req.param("id");
-    const valid = c.req.valid("json");
+	"/:id",
+	requireAuth,
+	zValidator("json", updateAccountSchema, (result, _) => {
+		if (!result.success) {
+			throw new ValidationError(result.error.issues);
+		}
+	}),
+	async (c) => {
+		const userId = c.get("userId");
+		const id = c.req.param("id");
+		const valid = c.req.valid("json");
 
-    const account = await accountRepository.updateFinancialAccount(
-      id,
-      userId,
-      valid,
-      prisma,
-    );
+		const account = await accountRepository.updateFinancialAccount(
+			id,
+			userId,
+			valid,
+			prisma,
+		);
 
-    return c.json(account, 201);
-  },
+		return c.json(account, 201);
+	},
 );
 
 app.delete("/:id", requireAuth, async (c) => {
-  const userId = c.get("userId");
-  const id = c.req.param("id");
+	const userId = c.get("userId");
+	const id = c.req.param("id");
 
-  const deleted = await accountRepository.deleteFinancialAccountById(
-    id,
-    userId,
-    prisma,
-  );
+	const deleted = await accountRepository.deleteFinancialAccountById(
+		id,
+		userId,
+		prisma,
+	);
 
-  return c.json(deleted, 200);
+	return c.json(deleted, 200);
 });
 
 export default {
-  path: "/financial-accounts",
-  handler: app,
+	path: "/financial-accounts",
+	handler: app,
 };
