@@ -6,6 +6,7 @@ import type {
 } from "@/types/transactions.types.js";
 import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 import { EntityNotFound } from "./error.repository.js";
+import { subDays } from "date-fns";
 
 export async function createTransaction(
 	userId: string,
@@ -170,6 +171,125 @@ export async function updateTransactionById(
 			},
 		});
 	});
+}
+
+export async function getWeeklyTransactions(
+	userId: string,
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const to = new Date();
+	const from = subDays(to, 7);
+
+	const transactions = await prisma.transaction.findMany({
+		where: {
+			userId,
+			date: {
+				gte: from,
+				lte: to,
+			},
+		},
+		orderBy: {
+			date: "desc",
+		},
+	});
+
+	return transactions;
+}
+
+export async function groupWeeklyTransactionsByType(
+	userId: string,
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const to = new Date();
+	const from = subDays(to, 7);
+
+	const transactionSums = await prisma.transaction.groupBy({
+		where: {
+			userId,
+			date: {
+				gte: from,
+				lte: to,
+			},
+			deletedAt: null,
+		},
+		by: ["categoryId"],
+		_sum: {
+			amount: true,
+		},
+	});
+
+	const categoriesId = transactionSums.map((t) => t.categoryId);
+	const categories = await prisma.category.findMany({
+		where: {
+			id: { in: categoriesId },
+		},
+		select: {
+			id: true,
+			type: true,
+			name: true,
+		},
+	});
+
+	const categoryMap = new Map(categories.map((c) => [c.id, c.type]));
+	const sumByType = transactionSums.reduce(
+		(acc, t) => {
+			const type = categoryMap.get(t.categoryId);
+			if (type) {
+				acc[type] = (acc[type] || 0) + Number(t._sum.amount);
+			}
+			return acc;
+		},
+		{} as Record<string, number>,
+	);
+
+	return sumByType;
+}
+
+export async function groupTransactionsPerodicallyByType(
+	userId: string,
+	{ from, to }: { from: Date; to: Date },
+	prisma: PrismaClient = defaultPrisma,
+) {
+	const transactionSums = await prisma.transaction.groupBy({
+		where: {
+			userId,
+			date: {
+				gte: from,
+				lte: to,
+			},
+			deletedAt: null,
+		},
+		by: ["categoryId"],
+		_sum: {
+			amount: true,
+		},
+	});
+
+	const categoriesId = transactionSums.map((t) => t.categoryId);
+	const categories = await prisma.category.findMany({
+		where: {
+			id: { in: categoriesId },
+		},
+		select: {
+			id: true,
+			type: true,
+			name: true,
+		},
+	});
+
+	const categoryMap = new Map(categories.map((c) => [c.id, c.type]));
+	const sumByType = transactionSums.reduce(
+		(acc, t) => {
+			const type = categoryMap.get(t.categoryId);
+			if (type) {
+				acc[type] = (acc[type] || 0) + Number(t._sum.amount);
+			}
+			return acc;
+		},
+		{} as Record<string, number>,
+	);
+
+	return sumByType;
 }
 
 export type CreateTransaction = Awaited<ReturnType<typeof createTransaction>>;
