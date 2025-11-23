@@ -1,4 +1,5 @@
 import { subDays } from "date-fns";
+import { Decimal } from "decimal.js";
 import type { PrismaClient } from "@/generated/prisma/client.js";
 import type {
 	CreateTransactionInputs,
@@ -7,7 +8,6 @@ import type {
 } from "@/types/transactions.types.js";
 import { prisma as defaultPrisma } from "@/utils/prisma.utils.js";
 import { EntityNotFound } from "./error.repository.js";
-import { Decimal } from "decimal.js";
 
 export async function createTransaction(
 	userId: string,
